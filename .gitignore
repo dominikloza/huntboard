@@ -46,3 +46,6 @@ next-env.d.ts
 /test-results
 /blob-report
 /playwright/.cache
+
+# files saved by the Claude desktop app
+/Claude outputs
