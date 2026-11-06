@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+/*
+ * Huntboard design tokens, direction B "Biuro podawcze" (see docs/adr/002).
+ * Components read semantic tokens only. Never hardcode hex values in components.
+ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #ecede8; /* grey paper, deliberately not cream */
+  --card: #fbfbf8; /* sheet of paper */
+  --folder: #e2e4de; /* inside of a folder column */
+  --foreground: #1d2125; /* ink */
+  --muted-foreground: #5b6168;
+  --border: #c9ccc4;
+  --ink: #1d2125; /* heavy 1.5px outlines */
+  --primary: #2340c8; /* cobalt: actions, stamps, match >= 80 */
+  --primary-foreground: #ffffff;
+  --primary-ink: #2340c8; /* cobalt as text/lines (stamps, scores); AA on paper */
+  --primary-soft: #dce2fa; /* active folder tab */
+  --pen: #c8261e; /* red pen: ONLY roast mode and errors */
+  --pen-foreground: #ffffff;
+  --shadow-hard: 3px 3px 0 var(--ink);
+  --shadow-sheet: 0 2px 0 #cdd0c8;
+}
+
+.dark {
+  /* "biuro po godzinach" */
+  --background: #16181b;
+  --card: #1f2226;
+  --folder: #1a1d20;
+  --foreground: #e9eae4;
+  --muted-foreground: #9da2a8;
+  --border: #33373c;
+  --ink: #e9eae4;
+  --primary: #3a57e8; /* fill only: white text on it passes AA */
+  --primary-foreground: #ffffff;
+  --primary-ink: #8ea0ff; /* #3a57e8 as text on dark paper fails AA (2.8:1) */
+  --primary-soft: #232b52;
+  --pen: #ff6b5e;
+  --pen-foreground: #16181b;
+  --shadow-hard: 3px 3px 0 #000000;
+  --shadow-sheet: 0 2px 0 #0d0e10;
+}
+
+@theme inline {
+  /* colors (shadcn-compatible names + Huntboard extras) */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--foreground);
+  --color-popover: var(--card);
+  --color-popover-foreground: var(--foreground);
+  --color-folder: var(--folder);
+  --color-muted: var(--folder);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--ink);
+  --color-ring: var(--primary-ink);
+  --color-ink: var(--ink);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-ink: var(--primary-ink);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--primary-soft);
+  --color-accent-foreground: var(--foreground);
+  --color-pen: var(--pen);
+  --color-pen-foreground: var(--pen-foreground);
+  --color-destructive: var(--pen);
+
+  /* type */
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-pen: "Caveat Variable", cursive;
+
+  /* shape: paper is almost square; tabs are the only rounded thing */
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 4px;
+  --radius-tab: 6px;
+
+  --shadow-hard: var(--shadow-hard);
+  --shadow-sheet: var(--shadow-sheet);
+
+  --animate-stamp: stamp-in 160ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  --animate-pen: pen-in 320ms ease-out both;
+
+  @keyframes stamp-in {
+    from {
+      opacity: 0;
+      scale: 1.18;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  @keyframes pen-in {
+    from {
+      opacity: 0;
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      opacity: 1;
+      clip-path: inset(0 0 0 0);
+    }
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary-ink);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
