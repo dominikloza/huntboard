@@ -9,6 +9,7 @@ const base: Application = {
   status: "applied",
   company: "Kropla Software",
   role: "Mid Frontend Developer",
+  seniority: "Mid",
   salaryMin: 17000,
   salaryMax: 22000,
   workMode: "remote",

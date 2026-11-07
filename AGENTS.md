@@ -47,10 +47,20 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
 - **Every database query takes `userId` from the server session**, never from client input
   (IDOR protection). Queries live in one layer (`src/lib/db/queries`): the exported function calls
   `requireUser()` and passes `user.id` to an unexported helper. Server Actions re-check the session too.
+  In render paths, call `await connection()` (from `next/server`) after `requireUser()` and before
+  the first query: opening a Postgres connection uses crypto randomness, which Next.js forbids
+  while prerendering.
 - **Session reads go behind `<Suspense>`** (Cache Components). Use `getCurrentUser()` /
   `requireUser()` from `src/lib/auth/session.ts`; never read cookies in a layout's top level.
 - Never edit `src/lib/db/schema/auth.ts` or `drizzle/*.sql` by hand; regenerate them.
 - Forms that change auth state are Server Actions (work without JavaScript).
+- **Board data (ADR 006):** reads = server prefetch into TanStack Query + `GET /api/applications`;
+  writes = Server Actions that validate with the shared Zod schema and **return**
+  `ActionResult` (never throw for validation). Update the cache with a pure, tested helper in
+  `src/features/board/lib/cache.ts`. Query keys live in `src/features/board/query-keys.ts`.
+- Next.js keeps recent routes alive (React Activity): state survives navigation. Reset what must
+  not survive (e.g. a submitted form) explicitly, or key the component by its data.
+- `error.tsx` receives `{ error, retry }` in this Next.js version (not `reset`).
 - **Secrets only on the server.** Never `NEXT_PUBLIC_` for API keys. AI calls go through Route
   Handlers that check the session and the rate limit first.
 - **Filters and search state live in the URL** (nuqs), not in a global store.

@@ -6,7 +6,8 @@ import { PenCircle, PenNote, PenStrike, PenUnderline } from "@/components/paper/
 import { Stamp } from "@/components/paper/stamp";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
+import { Select } from "@/components/ui/select";
 import { BoardScroller } from "@/features/board/components/board-scroller";
 import { FolderColumn } from "@/features/board/components/folder-column";
 import { MatchBadge } from "@/features/board/components/match-badge";
@@ -120,24 +121,20 @@ export default function StyleguidePage() {
             className="mt-8 grid max-w-xl gap-6 sm:grid-cols-2"
             aria-label="Przykładowy formularz"
           >
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="sg-company">Firma</Label>
-              <Input id="sg-company" defaultValue="Kropla Software" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="sg-salary">Widełki od</Label>
-              <Input
-                id="sg-salary"
-                inputMode="numeric"
-                defaultValue="abc"
-                aria-invalid="true"
-                aria-describedby="sg-salary-error"
-                className="font-mono"
-              />
-              <p id="sg-salary-error" className="text-xs text-pen">
-                Wpisz kwotę w złotych, np. 17000.
-              </p>
-            </div>
+            <FormField label="Firma" hint="Pole z podpowiedzią">
+              {(field) => <Input {...field} defaultValue="Kropla Software" />}
+            </FormField>
+            <FormField label="Widełki od (zł / mies.)" error="Wpisz kwotę od 0 do 200000 zł.">
+              {(field) => <Input {...field} defaultValue="abc" className="font-mono" />}
+            </FormField>
+            <FormField label="Etap">
+              {(field) => (
+                <Select {...field} defaultValue="interview">
+                  <option value="saved">Zapisane</option>
+                  <option value="interview">Rozmowa</option>
+                </Select>
+              )}
+            </FormField>
           </form>
         </Section>
 

@@ -6,7 +6,7 @@ import { BoardScroller } from "./board-scroller";
 import { FolderColumn } from "./folder-column";
 import { OfferCard } from "./offer-card";
 
-/** Read-only board. Drag & drop arrives on Day 3. */
+/** The board columns. Drag & drop arrives on Day 3. */
 export function BoardColumns({ applications }: { applications: Application[] }) {
   const columns = groupByStatus(applications);
   return (
@@ -19,7 +19,11 @@ export function BoardColumns({ applications }: { applications: Application[] }) 
           active={status === "interview" && columns.interview.length > 0}
         >
           {columns[status].map((application) => (
-            <OfferCard key={application.id} application={application} />
+            <OfferCard
+              key={application.id}
+              application={application}
+              href={`/board/app/${application.id}`}
+            />
           ))}
         </FolderColumn>
       ))}

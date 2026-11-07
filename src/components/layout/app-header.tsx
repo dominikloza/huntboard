@@ -28,11 +28,7 @@ export function AppHeader() {
         Huntboard
       </Link>
       <nav aria-label="Główna" className="flex gap-4 text-sm">
-        <Link
-          href="/board"
-          className="font-semibold underline decoration-2 underline-offset-[5px]"
-          aria-current="page"
-        >
+        <Link href="/board" className="font-semibold underline decoration-2 underline-offset-[5px]">
           Kartoteka
         </Link>
       </nav>

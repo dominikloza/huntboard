@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Stamp } from "@/components/paper/stamp";
 import { formatSalaryRange } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -9,14 +11,13 @@ import { MatchBadge } from "./match-badge";
 
 type OfferCardProps = {
   application: Application;
+  /** Opens the card. The whole sheet is clickable; the link itself sits on the role heading. */
+  href?: string;
   className?: string;
 };
 
-/**
- * One application as a perforated sheet of paper.
- * Drag & drop and the details link are added on Day 3/4.
- */
-export function OfferCard({ application, className }: OfferCardProps) {
+/** One application as a perforated sheet of paper. */
+export function OfferCard({ application, href, className }: OfferCardProps) {
   const { company, role, salaryMin, salaryMax, matchScore, stamp } = application;
 
   return (
@@ -24,12 +25,23 @@ export function OfferCard({ application, className }: OfferCardProps) {
       className={cn(
         // 2px dashed top edge = the perforation of a tear-off sheet
         "relative border border-t-2 [border-top-style:dashed] border-border border-t-muted-foreground/40 bg-card px-3 pt-3 pb-2.5 shadow-sheet",
+        href &&
+          "transition-[translate] duration-100 focus-within:-translate-y-px hover:-translate-y-px",
         className,
       )}
     >
       <p className="text-xs text-muted-foreground">{company}</p>
       <h3 className="mt-0.5 mb-2 pr-9 font-display text-[15px] leading-tight font-bold tracking-tight">
-        {role}
+        {href ? (
+          <Link
+            href={href}
+            className="outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-primary-ink"
+          >
+            {role}
+          </Link>
+        ) : (
+          role
+        )}
       </h3>
       <div className="flex items-center justify-between border-t border-border/60 pt-1.5 font-mono text-xs">
         <span>{formatSalaryRange(salaryMin, salaryMax, { compact: true })}</span>

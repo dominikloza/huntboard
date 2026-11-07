@@ -8,7 +8,6 @@
 
 Planned (write them when the decision is made, see `docs/PLAN.md` §8):
 
-- TanStack Query + Server Actions: where each is used (Day 2)
 - Fractional indexing for card order (Day 3)
 - Filter state in the URL instead of a global store (Day 4)
 - Streaming structured output and human in the loop (Day 5)

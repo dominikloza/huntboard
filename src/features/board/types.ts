@@ -14,6 +14,7 @@ export type Application = Pick<
   | "status"
   | "company"
   | "role"
+  | "seniority"
   | "salaryMin"
   | "salaryMax"
   | "workMode"

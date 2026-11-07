@@ -4,8 +4,8 @@
 and scores it against your profile, you move it through the process on a board. Roast mode lets
 an AI recruiter go over the offer with a red pen.
 
-> Status: **Day 1 of 10**. Postgres + Drizzle, GitHub and guest sign-in, a read-only board.
-> Drag & drop and AI features are next. See [`docs/PLAN.md`](docs/PLAN.md).
+> Status: **Day 2 of 10**. Sign-in (GitHub or guest), a live board with create / edit / delete
+> in a URL-addressable sheet. Drag & drop and AI features are next. See [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Why this project
 
@@ -23,7 +23,10 @@ Vitest + Testing Library · Playwright + axe · GitHub Actions.
 
 Data and auth: Postgres (Neon) + Drizzle ORM · Better Auth (GitHub OAuth + guest accounts).
 
-Coming next: TanStack Query, React Hook Form + Zod, dnd-kit, Vercel AI SDK, Upstash rate limiting.
+Board: TanStack Query (server prefetch + hydration) · Server Actions · React Hook Form + Zod ·
+parallel & intercepting routes for the card sheet.
+
+Coming next: dnd-kit with optimistic moves, Vercel AI SDK, Upstash rate limiting.
 
 ## Decisions
 
