@@ -70,6 +70,8 @@ const dropAnimation: DropAnimation = {
 type BoardColumnsProps = {
   applications: Application[];
   onMove: (move: Omit<MoveInput, "version">) => void;
+  /** Shown in empty folders (e.g. different copy while a filter is active). */
+  emptyMessage?: string;
 };
 
 const describe = (card: Application | undefined) =>
@@ -82,7 +84,7 @@ const where = (p: Placement | undefined) =>
  * The board with drag & drop (ADR 007): mouse, touch (long press) and keyboard.
  * While dragging, the order lives in local state; on drop it becomes one move for the server.
  */
-export function BoardColumns({ applications, onMove }: BoardColumnsProps) {
+export function BoardColumns({ applications, onMove, emptyMessage }: BoardColumnsProps) {
   const dndId = useId();
   const reduceMotion = useReducedMotion();
   const baseItems = useMemo(() => toColumnItems(applications), [applications]);
@@ -223,6 +225,7 @@ export function BoardColumns({ applications, onMove }: BoardColumnsProps) {
             status={status}
             ids={items[status]}
             dragging={activeId != null}
+            emptyMessage={emptyMessage}
           >
             {items[status].map((id) => {
               const card = byId.get(id);
@@ -250,11 +253,13 @@ function DroppableFolder({
   status,
   ids,
   dragging,
+  emptyMessage,
   children,
 }: {
   status: ApplicationStatus;
   ids: string[];
   dragging: boolean;
+  emptyMessage: string | undefined;
   children: React.ReactNode;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: columnDroppableId(status) });
@@ -266,6 +271,7 @@ function DroppableFolder({
         active={status === "interview" && ids.length > 0}
         bodyRef={setNodeRef}
         highlighted={dragging && isOver}
+        emptyMessage={emptyMessage}
       >
         {children}
       </FolderColumn>

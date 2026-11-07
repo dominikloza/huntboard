@@ -30,3 +30,15 @@ export function getMatchTier(score: number): MatchTier {
   if (score >= 50) return "medium";
   return "weak";
 }
+
+const dateTimeFormatter = new Intl.DateTimeFormat("pl-PL", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  // Fixed zone: server (UTC on Vercel) and browser render the same text, no hydration mismatch.
+  timeZone: "Europe/Warsaw",
+});
+
+/** "7 lis 2026, 14:05" in Polish time, the same on the server and in the browser. */
+export function formatDateTime(iso: string): string {
+  return dateTimeFormatter.format(new Date(iso));
+}

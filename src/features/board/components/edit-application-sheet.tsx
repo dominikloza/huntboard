@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -10,7 +10,14 @@ import { type Application } from "../types";
 import { ApplicationForm, toFormValues } from "./application-form";
 import { useCloseSheet } from "./sheet-frame";
 
-export function EditApplicationSheet({ application }: { application: Application }) {
+export function EditApplicationSheet({
+  application,
+  children,
+}: {
+  application: Application;
+  /** Extra sections between the form and the danger zone (e.g. notes). */
+  children?: ReactNode;
+}) {
   const { update, remove } = useApplicationMutations();
   const close = useCloseSheet();
   const [confirming, setConfirming] = useState(false);
@@ -36,6 +43,10 @@ export function EditApplicationSheet({ application }: { application: Application
         onSuccess={close}
         onCancel={close}
       />
+
+      {children && (
+        <div className="border-t-[1.5px] border-dashed border-border pt-6">{children}</div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3 border-t-[1.5px] border-dashed border-border pt-5">
         {confirming ? (

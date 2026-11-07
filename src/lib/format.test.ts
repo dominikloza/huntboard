@@ -1,4 +1,4 @@
-import { formatSalaryRange, getMatchTier } from "./format";
+import { formatDateTime, formatSalaryRange, getMatchTier } from "./format";
 
 describe("formatSalaryRange", () => {
   it("formats a full range with Polish thousands separators", () => {
@@ -38,5 +38,14 @@ describe("getMatchTier", () => {
     [Number.NaN, "weak"],
   ] as const)("score %s is %s", (score, tier) => {
     expect(getMatchTier(score)).toBe(tier);
+  });
+});
+
+describe("formatDateTime", () => {
+  it("formats in Polish time, whatever the machine's time zone", () => {
+    // 13:05 UTC in November = 14:05 in Warsaw (CET)
+    expect(formatDateTime("2026-11-07T13:05:00.000Z")).toBe("7 lis 2026, 14:05");
+    // 12:05 UTC in July = 14:05 in Warsaw (CEST)
+    expect(formatDateTime("2026-07-07T12:05:00.000Z")).toBe("7 lip 2026, 14:05");
   });
 });

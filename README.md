@@ -4,8 +4,9 @@
 and scores it against your profile, you move it through the process on a board. Roast mode lets
 an AI recruiter go over the offer with a red pen.
 
-> Status: **Day 3 of 10**. Sign-in (GitHub or guest), a live board with create / edit / delete in a
-> URL-addressable sheet, and accessible drag & drop with optimistic saves. AI features are next.
+> Status: **Day 4 of 10**. Sign-in (GitHub or guest), a live board with create / edit / delete in a
+> URL-addressable sheet, accessible drag & drop with optimistic saves, search and filters kept in
+> the URL, and notes on every application. AI features are next.
 > See [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Why this project
@@ -29,6 +30,8 @@ parallel & intercepting routes for the card sheet.
 
 Drag & drop: dnd-kit (mouse, touch, keyboard, Polish screen reader announcements) · fractional
 indexing · optimistic moves with rollback and version-based conflict detection.
+
+Filters and notes: nuqs (filter state in the URL) · React 19 `useOptimistic`.
 
 Coming next: Vercel AI SDK, Upstash rate limiting.
 

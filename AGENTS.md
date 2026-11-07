@@ -63,7 +63,11 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
 - `error.tsx` receives `{ error, retry }` in this Next.js version (not `reset`).
 - **Secrets only on the server.** Never `NEXT_PUBLIC_` for API keys. AI calls go through Route
   Handlers that check the session and the rate limit first.
-- **Filters and search state live in the URL** (nuqs), not in a global store.
+- **Filters and search state live in the URL** (nuqs), not in a global store (ADR 008). Parsers
+  and the pure `filterApplications` live in `src/features/board/filters.ts`. A move made while
+  filtering must map neighbours with `neighboursInFullColumn`.
+- **Notes (ADR 008):** Server Actions return `NoteResult`; the UI uses `useOptimistic`. Never call
+  `refresh()` from an action used inside the `@modal` sheet: it turns the modal into the full page.
 - Server Components by default. Add `"use client"` only to the smallest interactive leaf.
 - Tests: pure logic gets a Vitest test next to the file (`*.test.ts`). Components get Testing
   Library tests that query by role/label, not by class names.

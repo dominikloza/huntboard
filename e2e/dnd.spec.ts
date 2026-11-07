@@ -1,37 +1,16 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-import { column, signInAsGuest } from "./helpers";
-
-const cards = (page: Page, name: string) => column(page, name).getByRole("heading", { level: 3 });
-const liveRegion = (page: Page) => page.locator('[id^="DndLiveRegion"]');
-const handle = (page: Page, role: string, company: string) =>
-  page.getByRole("button", { name: `Przenieś kartę: ${role}, ${company}` });
-const alert = (page: Page, text: string) => page.getByRole("alert").filter({ hasText: text });
-
-/**
- * Lift a card with the keyboard. dnd-kit's KeyboardSensor starts listening for arrows on the
- * next tick after activation, so a bot pressing keys within the same millisecond would be lost
- * (a person can't type that fast).
- */
-async function lift(page: Page, role: string, company: string) {
-  await handle(page, role, company).focus();
-  await page.keyboard.press("Space");
-  await expect(liveRegion(page)).toContainText(`Podniesiono kartę ${role}`);
-  await page.waitForTimeout(50);
-}
-
-/** Keyboard move: lift, press the arrows (waiting for each announcement), drop. */
-async function keyboardMove(page: Page, role: string, company: string, steps: string[]) {
-  await lift(page, role, company);
-  for (const key of steps) {
-    const before = await liveRegion(page).textContent();
-    await page.keyboard.press(key);
-    await expect(liveRegion(page)).not.toHaveText(before ?? "");
-  }
-  await page.keyboard.press("Space");
-  await expect(liveRegion(page)).toContainText(`Przeniesiono kartę ${role}`);
-}
+import {
+  alert,
+  cards,
+  column,
+  handle,
+  keyboardMove,
+  lift,
+  liveRegion,
+  signInAsGuest,
+} from "./helpers";
 
 test.describe("drag & drop", () => {
   test.beforeEach(async ({ page }) => {
