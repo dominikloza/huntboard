@@ -1,23 +1,26 @@
 import Link from "next/link";
+import { type ReactNode } from "react";
 
 import { Stamp } from "@/components/paper/stamp";
 import { formatSalaryRange } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 import { formatWorkMode } from "../lib/work-mode";
-import { type Application } from "../types";
+import { type ApplicationCard } from "../types";
 
 import { MatchBadge } from "./match-badge";
 
 type OfferCardProps = {
-  application: Application;
+  application: ApplicationCard;
   /** Opens the card. The whole sheet is clickable; the link itself sits on the role heading. */
   href?: string;
+  /** Drag handle (keyboard and screen reader entry point for moving the card). */
+  handle?: ReactNode;
   className?: string;
 };
 
 /** One application as a perforated sheet of paper. */
-export function OfferCard({ application, href, className }: OfferCardProps) {
+export function OfferCard({ application, href, handle, className }: OfferCardProps) {
   const { company, role, salaryMin, salaryMax, matchScore, stamp } = application;
 
   return (
@@ -30,7 +33,10 @@ export function OfferCard({ application, href, className }: OfferCardProps) {
         className,
       )}
     >
-      <p className="text-xs text-muted-foreground">{company}</p>
+      <div className="flex items-center gap-1">
+        {handle}
+        <p className="text-xs text-muted-foreground">{company}</p>
+      </div>
       <h3 className="mt-0.5 mb-2 pr-9 font-display text-[15px] leading-tight font-bold tracking-tight">
         {href ? (
           <Link

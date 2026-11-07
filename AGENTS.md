@@ -85,7 +85,8 @@ add every new shared component there, in both themes.
   salaries, scores, stamps: `font-mono` (IBM Plex Mono).
 - Shape: radius 2px (`rounded-md`); `rounded-t-tab` only for folder tabs; `rounded-full` only
   for score circles. Outlines are `border-[1.5px] border-ink`.
-- Hard shadow (`shadow-hard`) only on primary buttons and the offer details sheet, not on every card.
+- Hard shadow (`shadow-hard`) only on primary buttons, the offer details sheet and the card being
+  dragged (it is lifted off the board), not on every card.
 - Stamps (`Stamp`) only where they carry information (status, date). Max one per card.
 - Icons: `@phosphor-icons/react` only (lint rule blocks lucide). Never emoji in the UI.
 - Motion must have a reason (feedback, state change, streaming). Use `animate-stamp` /
@@ -106,4 +107,6 @@ screenshots built from divs, "Acme"/"John Doe" sample data, filler copy ("seamle
 - Real elements: `<button>`, `<a href>`, `<label>` + `<input>`. Never `onClick` on a div.
 - Icon-only buttons get `aria-label`. Scrollable regions get `tabIndex={0}`, `role="region"` and a label.
 - Text contrast 4.5:1 in both themes. Check `/styleguide` light and dark after every visual change.
-- Drag & drop (Day 3) must work with the keyboard and announce moves via `aria-live`.
+- Drag & drop (ADR 007) works with mouse, touch and keyboard and announces moves in Polish.
+  Any change to the board must keep `e2e/dnd.spec.ts` green. Card order logic lives in
+  `src/features/board/lib/move.ts` (pure, tested); never compare positions with `localeCompare`.

@@ -6,10 +6,11 @@ import { UnauthorizedError } from "@/lib/auth/session";
 import {
   createApplicationForSession,
   deleteApplicationForSession,
+  moveApplicationForSession,
   updateApplicationForSession,
 } from "@/lib/db/queries/applications";
 
-import { applicationIdSchema, applicationInputSchema } from "./schemas";
+import { applicationIdSchema, applicationInputSchema, moveInputSchema } from "./schemas";
 import { type Application } from "./types";
 
 /*
@@ -73,5 +74,21 @@ export async function deleteApplication(id: unknown): Promise<ActionResult<{ id:
     return deleted
       ? { ok: true, data: { id: parsedId.data } }
       : { ok: false, error: "Nie znaleziono tej aplikacji." };
+  });
+}
+
+export async function moveApplication(move: unknown): Promise<ActionResult<Application>> {
+  return run(async () => {
+    const parsed = moveInputSchema.safeParse(move);
+    if (!parsed.success) return { ok: false, error: "Nieprawidłowy ruch karty." };
+    const result = await moveApplicationForSession(parsed.data);
+    if (result.ok) return { ok: true, data: result.card };
+    return {
+      ok: false,
+      error:
+        result.reason === "conflict"
+          ? "Tablica zmieniła się w międzyczasie (np. w innej karcie przeglądarki). Pokazuję aktualną wersję."
+          : "Nie znaleziono tej aplikacji.",
+    };
   });
 }

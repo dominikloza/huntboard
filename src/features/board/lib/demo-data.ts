@@ -1,10 +1,10 @@
-import { type Application } from "../types";
+import { type ApplicationCard } from "../types";
 
 /**
  * Demo applications for the styleguide and (later) the guest account seed.
  * Company names are invented; numbers are sample data, not real offers.
  */
-export const DEMO_APPLICATIONS: Application[] = [
+export const DEMO_APPLICATIONS: ApplicationCard[] = [
   {
     id: "polana-fe",
     status: "saved",

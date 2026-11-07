@@ -1,11 +1,16 @@
 import "server-only";
 
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, count, eq, gt, inArray, lt, ne, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 
+import { resolveMovePosition } from "@/features/board/lib/move";
 import { positionAtTop } from "@/features/board/lib/position";
-import { applicationIdSchema, type ApplicationInput } from "@/features/board/schemas";
+import {
+  applicationIdSchema,
+  type ApplicationInput,
+  type MoveInput,
+} from "@/features/board/schemas";
 import { type Application } from "@/features/board/types";
 import { requireSessionUser, requireUser } from "@/lib/auth/session";
 
@@ -20,6 +25,8 @@ import { applications } from "../schema";
 const columns = {
   id: applications.id,
   status: applications.status,
+  position: applications.position,
+  version: applications.version,
   company: applications.company,
   role: applications.role,
   seniority: applications.seniority,
@@ -101,10 +108,83 @@ export async function updateApplicationForSession(
 
     const [row] = await tx
       .update(applications)
-      .set({ ...input, ...(position ? { position } : {}) })
+      .set({
+        ...input,
+        ...(position ? { position } : {}),
+        version: sql`${applications.version} + 1`,
+      })
       .where(and(eq(applications.id, id), eq(applications.userId, user.id)))
       .returning(columns);
     return row ?? null;
+  });
+}
+
+export type MoveResult =
+  { ok: true; card: Application } | { ok: false; reason: "not-found" | "conflict" };
+
+/**
+ * Drag & drop move. Optimistic concurrency: the card must still be at the version the client
+ * saw, and the neighbours must still be next to each other in the target column. Otherwise the
+ * client's board is out of date and gets "conflict" (it rolls back and refetches).
+ */
+export async function moveApplicationForSession(move: MoveInput): Promise<MoveResult> {
+  const user = await requireSessionUser();
+  return getDb().transaction(async (tx) => {
+    const [card] = await tx
+      .select({ id: applications.id, version: applications.version })
+      .from(applications)
+      .where(and(eq(applications.id, move.id), eq(applications.userId, user.id)))
+      .for("update");
+    if (!card) return { ok: false, reason: "not-found" };
+    if (card.version !== move.version) return { ok: false, reason: "conflict" };
+
+    const neighbourIds = [move.prevId, move.nextId].filter((id): id is string => id != null);
+    const neighbours = neighbourIds.length
+      ? await tx
+          .select({ id: applications.id, position: applications.position })
+          .from(applications)
+          .where(
+            and(
+              inArray(applications.id, neighbourIds),
+              eq(applications.userId, user.id),
+              eq(applications.status, move.status),
+            ),
+          )
+      : [];
+    const prev = neighbours.find((n) => n.id === move.prevId);
+    const next = neighbours.find((n) => n.id === move.nextId);
+    if ((move.prevId && !prev) || (move.nextId && !next)) return { ok: false, reason: "conflict" };
+
+    const [between] = await tx
+      .select({ n: count() })
+      .from(applications)
+      .where(
+        and(
+          eq(applications.userId, user.id),
+          eq(applications.status, move.status),
+          ne(applications.id, move.id),
+          prev ? gt(applications.position, prev.position) : undefined,
+          next ? lt(applications.position, next.position) : undefined,
+        ),
+      );
+
+    const resolved = resolveMovePosition({
+      prevPosition: prev?.position ?? null,
+      nextPosition: next?.position ?? null,
+      othersBetween: between?.n ?? 0,
+    });
+    if (!resolved.ok) return { ok: false, reason: "conflict" };
+
+    const [row] = await tx
+      .update(applications)
+      .set({
+        status: move.status,
+        position: resolved.position,
+        version: sql`${applications.version} + 1`,
+      })
+      .where(and(eq(applications.id, move.id), eq(applications.userId, user.id)))
+      .returning(columns);
+    return row ? { ok: true, card: row } : { ok: false, reason: "not-found" };
   });
 }
 

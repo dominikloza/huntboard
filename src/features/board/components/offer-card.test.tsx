@@ -1,10 +1,10 @@
 import { render, screen } from "@testing-library/react";
 
-import { type Application } from "../types";
+import { type ApplicationCard } from "../types";
 
 import { OfferCard } from "./offer-card";
 
-const base: Application = {
+const base: ApplicationCard = {
   id: "kropla-mid",
   status: "applied",
   company: "Kropla Software",

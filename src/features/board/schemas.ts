@@ -76,3 +76,17 @@ export type ApplicationFormValues = z.input<typeof applicationInputSchema>;
 export type ApplicationInput = z.output<typeof applicationInputSchema>;
 
 export const applicationIdSchema = z.uuid();
+
+/** A drag & drop move: target column, the cards it now sits between, and the version it saw. */
+export const moveInputSchema = z
+  .object({
+    id: z.uuid(),
+    status: z.enum(APPLICATION_STATUSES),
+    prevId: z.uuid().nullable(),
+    nextId: z.uuid().nullable(),
+    version: z.int().positive(),
+  })
+  .refine((m) => m.prevId !== m.id && m.nextId !== m.id, "A card cannot be its own neighbour.")
+  .refine((m) => m.prevId == null || m.prevId !== m.nextId, "Neighbours must differ.");
+
+export type MoveInput = z.infer<typeof moveInputSchema>;

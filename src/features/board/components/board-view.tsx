@@ -1,12 +1,13 @@
 "use client";
 
-import { Plus } from "@phosphor-icons/react/ssr";
+import { Plus, X } from "@phosphor-icons/react/ssr";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { pluralPl } from "@/lib/plural";
 
+import { useMoveCard } from "../hooks/use-move-card";
 import { applicationsQuery, SessionExpiredError } from "../queries";
 
 import { BoardColumns } from "./board-columns";
@@ -15,6 +16,7 @@ import { BoardColumns } from "./board-columns";
 export function BoardView() {
   const { data: applications = [], error, refetch, isRefetching } = useQuery(applicationsQuery);
   const active = applications.filter((a) => a.status === "applied" || a.status === "interview");
+  const { move, error: moveError, dismissError } = useMoveCard();
 
   return (
     <>
@@ -63,7 +65,19 @@ export function BoardView() {
         </div>
       )}
 
-      <BoardColumns applications={applications} />
+      {moveError && (
+        <div
+          role="alert"
+          className="mb-5 flex flex-wrap items-center gap-3 border-[1.5px] border-pen px-4 py-3 text-sm"
+        >
+          <span>{moveError}</span>
+          <Button size="sm" variant="ghost" onClick={dismissError} aria-label="Zamknij komunikat">
+            <X aria-hidden weight="bold" />
+          </Button>
+        </div>
+      )}
+
+      <BoardColumns applications={applications} onMove={move} />
     </>
   );
 }

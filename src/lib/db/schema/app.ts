@@ -88,6 +88,8 @@ export const applications = pgTable(
     redFlags: jsonb("red_flags").$type<string[]>().notNull().default([]),
     rawOffer: text("raw_offer"),
     matchScore: smallint("match_score"),
+    /** Optimistic concurrency: bumped on every change; a move must name the version it saw. */
+    version: integer("version").notNull().default(1),
     ...timestamps,
   },
   (t) => [

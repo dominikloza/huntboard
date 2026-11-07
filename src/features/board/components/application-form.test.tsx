@@ -1,11 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { DEMO_APPLICATIONS } from "../lib/demo-data";
+import { boardFixture } from "../lib/test-fixtures";
 
 import { ApplicationForm, EMPTY_APPLICATION_FORM, toFormValues } from "./application-form";
 
-const demo = DEMO_APPLICATIONS[0];
+const demo = boardFixture()[0];
 if (!demo) throw new Error("fixture missing");
 
 function setup(onSubmit = vi.fn()) {
