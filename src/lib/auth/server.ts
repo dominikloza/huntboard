@@ -10,6 +10,8 @@ import { moveWorkspace, seedGuestWorkspace } from "@/lib/db/queries/workspace";
 import * as schema from "@/lib/db/schema";
 import { serverEnv } from "@/lib/env";
 
+import { resolveAuthUrls } from "./base-url";
+
 /**
  * Better Auth configuration (ADR 004).
  * Created lazily so that importing this module never needs secrets (e.g. during `next build`).
@@ -18,10 +20,18 @@ import { serverEnv } from "@/lib/env";
 function createAuth() {
   const env = serverEnv();
   const db = getDb();
+  const { baseURL, trustedOrigins } = resolveAuthUrls({
+    BETTER_AUTH_URL: env.BETTER_AUTH_URL,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    VERCEL_URL: process.env.VERCEL_URL,
+    VERCEL_BRANCH_URL: process.env.VERCEL_BRANCH_URL,
+    VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+  });
 
   return betterAuth({
     appName: "Huntboard",
-    baseURL: env.BETTER_AUTH_URL,
+    baseURL,
+    trustedOrigins,
     secret: env.BETTER_AUTH_SECRET,
     database: drizzleAdapter(db, { provider: "pg", schema }),
     socialProviders: {

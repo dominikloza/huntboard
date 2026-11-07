@@ -9,7 +9,8 @@ import { z } from "zod";
 const serverEnvSchema = z.object({
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   BETTER_AUTH_SECRET: z.string().min(32, "Generate it with: openssl rand -base64 32"),
-  BETTER_AUTH_URL: z.url(),
+  // Optional on Vercel previews: the deployment URL is used instead (src/lib/auth/base-url.ts).
+  BETTER_AUTH_URL: z.url().optional(),
   GITHUB_CLIENT_ID: z.string().min(1),
   GITHUB_CLIENT_SECRET: z.string().min(1),
 });
