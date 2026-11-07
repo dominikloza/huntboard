@@ -12,7 +12,7 @@ import { FolderColumn } from "@/features/board/components/folder-column";
 import { MatchBadge } from "@/features/board/components/match-badge";
 import { OfferCard } from "@/features/board/components/offer-card";
 import { DEMO_APPLICATIONS } from "@/features/board/lib/demo-data";
-import { APPLICATION_STATUSES, STATUS_LABELS } from "@/features/board/types";
+import { APPLICATION_STATUSES, STATUS_LABELS } from "@/features/board/constants";
 
 export const metadata: Metadata = {
   title: "Styleguide",

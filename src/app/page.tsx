@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { SiteHeader } from "@/components/layout/site-header";
 import { Stamp } from "@/components/paper/stamp";
-import { Button } from "@/components/ui/button";
+import { SignInButtons } from "@/features/auth/components/sign-in-buttons";
 
 export default function HomePage() {
   return (
@@ -16,9 +16,13 @@ export default function HomePage() {
         <p className="max-w-[48ch] text-lg text-muted-foreground">
           Wklejasz ofertę, AI ją rozpisuje, Ty decydujesz. Bez arkusza w Excelu.
         </p>
-        <Button asChild>
-          <Link href="/styleguide">Zobacz styleguide</Link>
-        </Button>
+        <SignInButtons />
+        <Link
+          href="/styleguide"
+          className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        >
+          Zobacz styleguide
+        </Link>
       </main>
     </>
   );

@@ -24,7 +24,12 @@ pnpm typecheck     # next typegen + tsc --noEmit
 pnpm test          # Vitest unit/component tests
 pnpm e2e           # Playwright e2e + axe accessibility checks (starts the dev server)
 pnpm check         # lint + format + typecheck + test
+pnpm db:generate   # after editing src/lib/db/schema: writes a SQL migration to drizzle/
+pnpm db:migrate    # applies migrations (uses DATABASE_URL_UNPOOLED from .env.local)
+pnpm auth:schema   # after changing Better Auth plugins: regenerates src/lib/db/schema/auth.ts
 ```
+
+E2E tests need a database: `DATABASE_URL` in `.env.local` pointing at a migrated Postgres.
 
 A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` passes too.
 
@@ -35,10 +40,17 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
   (Huntboard signature components), `src/lib` (framework-free utilities).
 - **No `any`.** No non-null assertions to silence the compiler. `noUncheckedIndexedAccess` is on:
   handle `undefined`.
-- **Zod is the single source of truth** for data shapes (from Day 1): schema -> TS type -> form
-  (React Hook Form) -> Server Action -> AI output parser. Do not hand-write duplicate types.
+- **One source of truth per shape, no hand-written duplicates.** Stored data: the Drizzle schema
+  (`src/lib/db/schema`), UI types are `Pick`s of the inferred row types. Input data (forms,
+  Server Actions, AI output): a Zod schema, with the TS type from `z.infer`. Shared enums live in
+  `src/features/board/constants.ts`.
 - **Every database query takes `userId` from the server session**, never from client input
-  (IDOR protection). Queries live in one layer (`src/lib/db/queries`).
+  (IDOR protection). Queries live in one layer (`src/lib/db/queries`): the exported function calls
+  `requireUser()` and passes `user.id` to an unexported helper. Server Actions re-check the session too.
+- **Session reads go behind `<Suspense>`** (Cache Components). Use `getCurrentUser()` /
+  `requireUser()` from `src/lib/auth/session.ts`; never read cookies in a layout's top level.
+- Never edit `src/lib/db/schema/auth.ts` or `drizzle/*.sql` by hand; regenerate them.
+- Forms that change auth state are Server Actions (work without JavaScript).
 - **Secrets only on the server.** Never `NEXT_PUBLIC_` for API keys. AI calls go through Route
   Handlers that check the session and the rate limit first.
 - **Filters and search state live in the URL** (nuqs), not in a global store.

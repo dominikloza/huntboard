@@ -25,6 +25,7 @@ jobs:
       - run: pnpm format:check
       - run: pnpm typecheck
       - run: pnpm test
+      # The build needs no secrets: env is validated lazily at runtime (src/lib/env.ts).
       - run: pnpm build
       - uses: actions/upload-artifact@v4
         with:
@@ -37,6 +38,27 @@ jobs:
     name: E2E + accessibility (Playwright)
     needs: quality
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: huntboard
+          POSTGRES_PASSWORD: huntboard
+          POSTGRES_DB: huntboard
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U huntboard"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CI: "true"
+      DATABASE_URL: postgresql://huntboard:huntboard@localhost:5432/huntboard
+      BETTER_AUTH_SECRET: ci-only-secret-that-is-at-least-32-characters
+      BETTER_AUTH_URL: http://localhost:3000
+      # GitHub sign-in is not exercised in CI (guest flow only), but the config requires values.
+      GITHUB_CLIENT_ID: ci-dummy
+      GITHUB_CLIENT_SECRET: ci-dummy
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -45,14 +67,13 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm db:migrate
       - uses: actions/download-artifact@v4
         with:
           name: next-build
           path: .next
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm e2e
-        env:
-          CI: "true"
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

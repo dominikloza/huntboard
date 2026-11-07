@@ -4,8 +4,8 @@
 and scores it against your profile, you move it through the process on a board. Roast mode lets
 an AI recruiter go over the offer with a red pen.
 
-> Status: **Day 0 of 10**. Tooling, design tokens and the `/styleguide` are in place.
-> The board, auth and AI features are next. See [`docs/PLAN.md`](docs/PLAN.md).
+> Status: **Day 1 of 10**. Postgres + Drizzle, GitHub and guest sign-in, a read-only board.
+> Drag & drop and AI features are next. See [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Why this project
 
@@ -21,8 +21,9 @@ Next.js 16 (App Router, RSC, Server Actions) · React 19 · TypeScript (strict,
 `noUncheckedIndexedAccess`) · Tailwind CSS 4 · Radix primitives (shadcn-style components) ·
 Vitest + Testing Library · Playwright + axe · GitHub Actions.
 
-Coming next: Postgres (Neon) + Drizzle, Auth.js / Better Auth, TanStack Query, React Hook Form +
-Zod, dnd-kit, Vercel AI SDK, Upstash rate limiting.
+Data and auth: Postgres (Neon) + Drizzle ORM · Better Auth (GitHub OAuth + guest accounts).
+
+Coming next: TanStack Query, React Hook Form + Zod, dnd-kit, Vercel AI SDK, Upstash rate limiting.
 
 ## Decisions
 
@@ -31,13 +32,19 @@ separate backend, why direction B, why fonts are self-hosted.
 
 ## Getting started
 
-Requirements: Node 22+, pnpm 10 (`corepack enable`).
+Requirements: Node 22+, pnpm 10, a Postgres database (a free [Neon](https://neon.tech) project
+or a local Postgres) and a GitHub OAuth App
+(callback `http://localhost:3000/api/auth/callback/github`).
 
 ```bash
 pnpm install
+cp .env.example .env.local    # fill in DATABASE_URL, BETTER_AUTH_*, GITHUB_*
+pnpm db:migrate               # creates the tables
 pnpm dev                      # http://localhost:3000, design system at /styleguide
 pnpm exec playwright install chromium   # once, for e2e tests
 ```
+
+No GitHub app yet? Click "Wejdź jako gość": the guest account works with the database alone.
 
 | Command       | What it does                                              |
 | ------------- | --------------------------------------------------------- |

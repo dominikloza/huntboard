@@ -4,7 +4,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 export function SiteHeader() {
   return (
-    <header className="flex flex-wrap items-center gap-5 border-b-2 border-ink px-4 py-4 sm:px-7">
+    <header className="flex flex-wrap items-center gap-5 border-b-2 border-ink px-4 py-3 sm:px-7">
       <Link
         href="/"
         className="font-display text-[22px] font-extrabold tracking-[-0.03em] text-foreground"

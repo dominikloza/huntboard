@@ -37,6 +37,6 @@ test.describe("styleguide", () => {
 
 test("home page links to the styleguide", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: "Zobacz styleguide" }).click();
+  await page.getByRole("main").getByRole("link", { name: "Zobacz styleguide" }).click();
   await expect(page).toHaveURL(/\/styleguide$/);
 });
