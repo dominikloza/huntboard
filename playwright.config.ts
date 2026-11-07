@@ -28,5 +28,11 @@ export default defineConfig({
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
+        env: {
+          // AI features run against the scripted demo model: deterministic and free (ADR 009).
+          AI_PROVIDER: "mock",
+          // Auth must trust the port the tests run on (overrides .env.local and CI env).
+          BETTER_AUTH_URL: baseURL,
+        },
       },
 });

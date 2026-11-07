@@ -20,7 +20,10 @@ export function BoardScroller({
       role="region"
       aria-label={label}
       tabIndex={0}
-      className={cn("overflow-x-auto pb-2", className)}
+      // relative: absolutely positioned descendants (e.g. sr-only text in the folder tabs) must
+      // use this box as their containing block, or they escape the scroll area and widen the
+      // whole page on phones (the browser then zooms the page out).
+      className={cn("relative overflow-x-auto pb-2", className)}
     >
       <div className="grid min-w-[1060px] grid-cols-5 gap-3.5">{children}</div>
     </div>

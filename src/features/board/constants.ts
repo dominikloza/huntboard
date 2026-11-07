@@ -21,3 +21,8 @@ export type RemotePreference = (typeof REMOTE_PREFERENCES)[number];
 
 export const AI_USAGE_KINDS = ["extract", "match", "roast"] as const;
 export type AiUsageKind = (typeof AI_USAGE_KINDS)[number];
+
+/** Pasted job offer text: long enough to extract from, short enough to keep AI cost bounded. */
+export const OFFER_MIN_LENGTH = 80;
+export const OFFER_MAX_LENGTH = 12_000;
+export const MAX_RED_FLAGS = 5;

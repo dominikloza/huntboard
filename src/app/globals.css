@@ -86,6 +86,8 @@
 
   --animate-stamp: stamp-in 160ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
   --animate-pen: pen-in 320ms ease-out both;
+  /* a field the AI just filled: a quick highlighter swipe that fades out */
+  --animate-fill: field-fill 700ms ease-out both;
 
   @keyframes stamp-in {
     from {
@@ -95,6 +97,15 @@
     to {
       opacity: 1;
       scale: 1;
+    }
+  }
+
+  @keyframes field-fill {
+    from {
+      background-color: var(--primary-soft);
+    }
+    to {
+      background-color: transparent;
     }
   }
 

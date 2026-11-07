@@ -1,39 +1,32 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { type ReactNode, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 import { type ActionResult } from "../actions";
 import { APPLICATION_STATUSES, STATUS_LABELS, WORK_MODES } from "../constants";
 import {
   applicationInputSchema,
+  EMPTY_APPLICATION_FORM,
   type ApplicationFormValues,
   type ApplicationInput,
 } from "../schemas";
 import { type Application } from "../types";
+
+export { EMPTY_APPLICATION_FORM };
 
 const WORK_MODE_LABELS = {
   remote: "Zdalnie",
   hybrid: "Hybrydowo",
   office: "Stacjonarnie",
 } as const;
-
-export const EMPTY_APPLICATION_FORM: ApplicationFormValues = {
-  company: "",
-  role: "",
-  status: "saved",
-  workMode: "remote",
-  city: "",
-  seniority: "",
-  salaryMin: "",
-  salaryMax: "",
-  stack: "",
-};
 
 export function toFormValues(application: Application): ApplicationFormValues {
   return {
@@ -58,7 +51,31 @@ type ApplicationFormProps = {
   onCancel: () => void;
   /** Clear the form after a successful submit (the "new" form is kept alive between visits). */
   resetOnSuccess?: boolean;
+  /**
+   * AI intake (ADR 009): values arriving from the stream. The form follows them; while `active`
+   * the fields are read-only and fields the model has not answered yet are placeholders.
+   */
+  stream?: FormStream;
+  /** Rendered between the fields and the buttons (e.g. AI warnings). */
+  beforeActions?: ReactNode;
 };
+
+export type FormStream = {
+  values: ApplicationFormValues;
+  answered: ReadonlySet<string>;
+  active: boolean;
+};
+
+/** Placeholder while waiting for the field, a one-off highlight when its value arrives. */
+function streamFieldClass(stream: FormStream | undefined, name: keyof ApplicationFormValues) {
+  if (!stream) return undefined;
+  if (!stream.answered.has(name)) {
+    return stream.active
+      ? "[&_:is(input,select)]:animate-pulse [&_:is(input,select)]:bg-folder [&_:is(input,select)]:text-transparent"
+      : undefined;
+  }
+  return "[&_:is(input,select)]:animate-fill";
+}
 
 /**
  * Validates on the client with the same Zod schema the Server Action uses on the server.
@@ -75,17 +92,33 @@ export function ApplicationForm({
   onSuccess,
   onCancel,
   resetOnSuccess = false,
+  stream,
+  beforeActions,
 }: ApplicationFormProps) {
   const {
     register,
     handleSubmit,
     setError,
     reset,
+    getValues,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ApplicationFormValues, unknown, ApplicationInput>({
     resolver: zodResolver(applicationInputSchema),
     defaultValues,
   });
+
+  const streamValues = stream?.values;
+  useEffect(() => {
+    if (!streamValues) return;
+    for (const [name, value] of Object.entries(streamValues)) {
+      const field = name as keyof ApplicationFormValues;
+      if (getValues(field) !== value) setValue(field, value);
+    }
+  }, [streamValues, getValues, setValue]);
+
+  const locked = stream?.active === true;
+  const fieldClass = (name: keyof ApplicationFormValues) => streamFieldClass(stream, name);
 
   const submit = handleSubmit(async (values) => {
     const result = await onSubmit(values);
@@ -103,12 +136,13 @@ export function ApplicationForm({
   });
 
   return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-6">
-      <div className="grid gap-5 sm:grid-cols-2">
-        <FormField label="Firma" error={errors.company?.message}>
+    <form onSubmit={submit} noValidate aria-busy={locked} className="flex flex-col gap-6">
+      {/* inert: no typing or focus while the AI fills the fields; values arrive via setValue */}
+      <div className="grid gap-5 sm:grid-cols-2" inert={locked}>
+        <FormField label="Firma" error={errors.company?.message} className={fieldClass("company")}>
           {(field) => <Input {...field} autoComplete="organization" {...register("company")} />}
         </FormField>
-        <FormField label="Stanowisko" error={errors.role?.message}>
+        <FormField label="Stanowisko" error={errors.role?.message} className={fieldClass("role")}>
           {(field) => <Input {...field} autoComplete="organization-title" {...register("role")} />}
         </FormField>
 
@@ -123,11 +157,20 @@ export function ApplicationForm({
             </Select>
           )}
         </FormField>
-        <FormField label="Poziom" hint="Np. Junior, Mid, Senior" error={errors.seniority?.message}>
+        <FormField
+          label="Poziom"
+          hint="Np. Junior, Mid, Senior"
+          error={errors.seniority?.message}
+          className={fieldClass("seniority")}
+        >
           {(field) => <Input {...field} {...register("seniority")} />}
         </FormField>
 
-        <FormField label="Tryb pracy" error={errors.workMode?.message}>
+        <FormField
+          label="Tryb pracy"
+          error={errors.workMode?.message}
+          className={fieldClass("workMode")}
+        >
           {(field) => (
             <Select {...field} {...register("workMode")}>
               {WORK_MODES.map((mode) => (
@@ -138,11 +181,15 @@ export function ApplicationForm({
             </Select>
           )}
         </FormField>
-        <FormField label="Miasto" error={errors.city?.message}>
+        <FormField label="Miasto" error={errors.city?.message} className={fieldClass("city")}>
           {(field) => <Input {...field} autoComplete="address-level2" {...register("city")} />}
         </FormField>
 
-        <FormField label="Widełki od (zł / mies.)" error={errors.salaryMin?.message}>
+        <FormField
+          label="Widełki od (zł / mies.)"
+          error={errors.salaryMin?.message}
+          className={fieldClass("salaryMin")}
+        >
           {(field) => (
             <Input
               {...field}
@@ -152,7 +199,11 @@ export function ApplicationForm({
             />
           )}
         </FormField>
-        <FormField label="Widełki do (zł / mies.)" error={errors.salaryMax?.message}>
+        <FormField
+          label="Widełki do (zł / mies.)"
+          error={errors.salaryMax?.message}
+          className={fieldClass("salaryMax")}
+        >
           {(field) => (
             <Input
               {...field}
@@ -167,14 +218,16 @@ export function ApplicationForm({
           label="Stack"
           hint="Technologie oddzielone przecinkami"
           error={errors.stack?.message}
-          className="sm:col-span-2"
+          className={cn("sm:col-span-2", fieldClass("stack"))}
         >
           {(field) => <Input {...field} {...register("stack")} />}
         </FormField>
       </div>
 
+      {beforeActions}
+
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting || locked}>
           {isSubmitting ? pendingLabel : submitLabel}
         </Button>
         <Button

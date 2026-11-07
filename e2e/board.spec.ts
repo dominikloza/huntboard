@@ -14,6 +14,8 @@ test.describe("board CRUD", () => {
     await expect(page).toHaveURL(/\/board\/new$/);
     const dialog = page.getByRole("dialog", { name: "Nowa oferta" });
     await expect(dialog).toBeVisible();
+    // The sheet starts with the AI intake (paste an offer); this test fills the form by hand.
+    await dialog.getByRole("button", { name: "Wpisz ręcznie" }).click();
 
     // Client-side validation (same Zod schema as the server).
     await dialog.getByRole("button", { name: "Dodaj do kartoteki" }).click();
@@ -93,6 +95,7 @@ test.describe("board CRUD", () => {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
       await page.getByRole("link", { name: "Dodaj ofertę" }).click();
       const dialog = page.getByRole("dialog", { name: "Nowa oferta" });
+      await dialog.getByRole("button", { name: "Wpisz ręcznie" }).click();
       await dialog.getByRole("button", { name: "Dodaj do kartoteki" }).click();
       await expect(dialog.getByText("Podaj nazwę firmy.")).toBeVisible();
 
@@ -108,13 +111,27 @@ test("the new-card form is empty again after a successful create", async ({ page
   await signInAsGuest(page);
   await page.getByRole("link", { name: "Dodaj ofertę" }).click();
   const dialog = page.getByRole("dialog", { name: "Nowa oferta" });
+  await dialog.getByRole("button", { name: "Wpisz ręcznie" }).click();
   await dialog.getByLabel("Firma").fill("Odra Systems");
   await dialog.getByLabel("Stanowisko").fill("React Developer (Odra)");
   await dialog.getByRole("button", { name: "Dodaj do kartoteki" }).click();
   await expect(dialog).toBeHidden();
 
   await page.getByRole("link", { name: "Dodaj ofertę" }).click();
-  await expect(page.getByRole("dialog", { name: "Nowa oferta" }).getByLabel("Firma")).toHaveValue(
-    "",
-  );
+  await expect(dialog.getByLabel("Treść ogłoszenia")).toHaveValue("");
+  await dialog.getByRole("button", { name: "Wpisz ręcznie" }).click();
+  await expect(dialog.getByLabel("Firma")).toHaveValue("");
+});
+
+test("only the board scrolls sideways, never the whole page", async ({ page }) => {
+  // Regression: sr-only text in the folder tabs escaped the scroll area and made phones zoom
+  // the whole page out.
+  await signInAsGuest(page);
+  const widths = await page.evaluate(() => [
+    document.documentElement.scrollWidth,
+    window.innerWidth,
+  ]);
+  expect(widths[0]).toBeLessThanOrEqual(widths[1] ?? 0);
+  const viewport = page.viewportSize();
+  expect(widths[1]).toBe(viewport?.width);
 });

@@ -40,8 +40,13 @@ test.describe("notes", () => {
     const pageList = page.getByRole("list", { name: "Lista notatek" });
     await expect(pageList).toContainText("Rozmowa z HR.");
 
+    // The note disappears at once (optimistic); reload only after the server confirmed.
+    const deleted = page.waitForResponse(
+      (r) => r.request().method() === "POST" && r.request().headers()["next-action"] !== undefined,
+    );
     await page.getByRole("button", { name: /^Usuń notatkę z / }).click();
     await expect(page.getByText("Brak notatek.")).toBeVisible();
+    await deleted;
     await page.reload();
     await expect(page.getByText("Brak notatek.")).toBeVisible();
   });
@@ -53,6 +58,7 @@ test.describe("notes", () => {
       await sheet.getByLabel("Nowa notatka").fill("Notatka do sprawdzenia kontrastu.");
       await sheet.getByRole("button", { name: "Dodaj notatkę" }).click();
       await expect(sheet.getByRole("list", { name: "Lista notatek" })).toBeVisible();
+      await expect(sheet.getByText("Zapisuję...")).toBeHidden();
       const results = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
         .analyze();

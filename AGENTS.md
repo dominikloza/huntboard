@@ -63,6 +63,13 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
 - `error.tsx` receives `{ error, retry }` in this Next.js version (not `reset`).
 - **Secrets only on the server.** Never `NEXT_PUBLIC_` for API keys. AI calls go through Route
   Handlers that check the session and the rate limit first.
+- **AI (ADR 009):** get the model only from `getModel()` (`src/lib/ai/model.ts`). Model output
+  schemas live in `src/features/<feature>/schemas.ts` (all keys required, nullable instead of
+  optional). Pasted user text goes into a delimited data block (`src/lib/ai/prompts`), never
+  into instructions. Stream with `textStreamAfterFirstChunk` so early provider errors become
+  HTTP errors. AI output is a draft: the user confirms before anything is saved.
+- **E2E never calls a real model:** Playwright starts the app with `AI_PROVIDER=mock`
+  (`src/lib/ai/demo-model.ts`). Add new scripted answers there, not network mocks.
 - **Filters and search state live in the URL** (nuqs), not in a global store (ADR 008). Parsers
   and the pure `filterApplications` live in `src/features/board/filters.ts`. A move made while
   filtering must map neighbours with `neighboursInFullColumn`.

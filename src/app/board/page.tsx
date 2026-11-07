@@ -12,11 +12,12 @@ export const metadata: Metadata = { title: "Kartoteka" };
 
 /** Prefetch on the server, hand the cache to the client: no loading spinner on first paint. */
 async function Board() {
+  // Read first, then seed the cache: the query reads the session and opens a request-time
+  // connection, and only after that may TanStack stamp the data with Date.now() (Cache
+  // Components forbid the current time while prerendering).
+  const applications = await getBoardApplications();
   const queryClient = getQueryClient();
-  await queryClient.prefetchQuery({
-    queryKey: applicationKeys.all,
-    queryFn: getBoardApplications,
-  });
+  queryClient.setQueryData(applicationKeys.all, applications);
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <BoardView />

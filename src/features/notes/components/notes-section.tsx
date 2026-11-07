@@ -6,7 +6,6 @@ import { type FormEvent, useId, useOptimistic, useState, useTransition } from "r
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDateTime } from "@/lib/format";
-import { cn } from "@/lib/utils";
 
 import { addNote, deleteNote } from "../actions";
 import { NOTE_MAX_LENGTH } from "../schemas";
@@ -120,7 +119,7 @@ export function NotesSection({ applicationId, notes }: { applicationId: string; 
           aria-label="Lista notatek"
         >
           {optimisticNotes.map((note) => (
-            <li key={note.id} className={cn("flex gap-3 py-3", note.pending && "opacity-60")}>
+            <li key={note.id} className="flex gap-3 py-3">
               <div className="min-w-0 flex-1">
                 <p className="text-sm break-words whitespace-pre-wrap">{note.body}</p>
                 <p className="mt-1 font-mono text-xs text-muted-foreground">

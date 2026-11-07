@@ -4,9 +4,10 @@
 and scores it against your profile, you move it through the process on a board. Roast mode lets
 an AI recruiter go over the offer with a red pen.
 
-> Status: **Day 4 of 10**. Sign-in (GitHub or guest), a live board with create / edit / delete in a
+> Status: **Day 5 of 10**. Sign-in (GitHub or guest), a live board with create / edit / delete in a
 > URL-addressable sheet, accessible drag & drop with optimistic saves, search and filters kept in
-> the URL, and notes on every application. AI features are next.
+> the URL, notes on every application, and AI intake: paste an offer and watch the form fill in, then
+> correct it and save. Match score and roast mode are next.
 > See [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Why this project
@@ -33,7 +34,10 @@ indexing · optimistic moves with rollback and version-based conflict detection.
 
 Filters and notes: nuqs (filter state in the URL) · React 19 `useOptimistic`.
 
-Coming next: Vercel AI SDK, Upstash rate limiting.
+AI: Vercel AI SDK 7 (`streamText` + `Output.object`, `useObject`), OpenAI or Gemini behind one
+`getModel()` adapter, a scripted demo model for e2e tests.
+
+Coming next: Upstash rate limiting, usage limits, evals.
 
 ## Decisions
 

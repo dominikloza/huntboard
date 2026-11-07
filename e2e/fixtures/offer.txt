@@ -1,0 +1,19 @@
+Frontend Developer (React) - Kreska Software
+
+Kreska Software buduje narzędzia do planowania produkcji dla fabryk mebli. Szukamy osoby, która rozwinie nasz panel planisty w React i TypeScript.
+
+Twoje zadania:
+- rozwój aplikacji w Next.js (App Router) i TanStack Query,
+- współpraca z projektantką przy nowym systemie komponentów,
+- testy e2e w Playwright.
+
+Wymagamy:
+- min. 2 lata komercyjnego doświadczenia z React i TypeScript,
+- znajomości REST i podstaw dostępności (WCAG).
+
+Oferujemy:
+- 16 000 - 22 000 zł netto + VAT (B2B),
+- pracę hybrydową: 2 dni w tygodniu w biurze we Wrocławiu (Nadodrze),
+- budżet szkoleniowy 3 000 zł rocznie.
+
+Proces: rozmowa z HR, zadanie rekrutacyjne (ok. 3 dni pracy, bez wynagrodzenia), rozmowa techniczna.

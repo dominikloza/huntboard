@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { APPLICATION_STATUSES, WORK_MODES } from "./constants";
+import { APPLICATION_STATUSES, MAX_RED_FLAGS, OFFER_MAX_LENGTH, WORK_MODES } from "./constants";
 
 const MAX_SALARY = 200_000;
 
@@ -66,6 +66,9 @@ export const applicationInputSchema = z
     salaryMin: salary,
     salaryMax: salary,
     stack,
+    // Set only when the card comes from a pasted offer (AI intake). Undefined = leave unchanged.
+    rawOffer: z.string().trim().max(OFFER_MAX_LENGTH).optional(),
+    redFlags: z.array(z.string().trim().min(1).max(200)).max(MAX_RED_FLAGS).optional(),
   })
   .refine((v) => v.salaryMin == null || v.salaryMax == null || v.salaryMin <= v.salaryMax, {
     path: ["salaryMax"],
@@ -74,6 +77,18 @@ export const applicationInputSchema = z
 
 export type ApplicationFormValues = z.input<typeof applicationInputSchema>;
 export type ApplicationInput = z.output<typeof applicationInputSchema>;
+
+export const EMPTY_APPLICATION_FORM: ApplicationFormValues = {
+  company: "",
+  role: "",
+  status: "saved",
+  workMode: "remote",
+  city: "",
+  seniority: "",
+  salaryMin: "",
+  salaryMax: "",
+  stack: "",
+};
 
 export const applicationIdSchema = z.uuid();
 

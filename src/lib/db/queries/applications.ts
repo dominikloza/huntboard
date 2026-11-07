@@ -15,7 +15,7 @@ import { type Application } from "@/features/board/types";
 import { requireSessionUser, requireUser } from "@/lib/auth/session";
 
 import { getDb, type Database } from "../client";
-import { applications } from "../schema";
+import { applications, type ApplicationRow } from "../schema";
 
 /*
  * Data Access Layer for applications. Every exported function resolves the user from the
@@ -51,12 +51,15 @@ export async function getBoardApplications(): Promise<Application[]> {
 }
 
 /** One card for the details page/modal. 404 for invalid ids and for other users' cards. */
-export async function getApplicationOr404(id: string): Promise<Application> {
+/** The sheet shows more than the board card: the AI's warnings about the offer. */
+export type ApplicationDetails = Application & Pick<ApplicationRow, "redFlags">;
+
+export async function getApplicationOr404(id: string): Promise<ApplicationDetails> {
   const user = await requireUser();
   if (!applicationIdSchema.safeParse(id).success) notFound();
   await connection();
   const [row] = await getDb()
-    .select(columns)
+    .select({ ...columns, redFlags: applications.redFlags })
     .from(applications)
     .where(and(eq(applications.id, id), eq(applications.userId, user.id)))
     .limit(1);
