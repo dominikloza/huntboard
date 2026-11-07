@@ -35,3 +35,6 @@ without hand-written duplicates.
 - Each serverless instance keeps a small pool (max 5). If connection counts become a problem,
   switch to the Neon serverless driver or Vercel's pool attachment.
 - Schema changes are a two-step flow: edit schema -> `pnpm db:generate` -> review SQL -> migrate.
+- Text sort order depends on the database collation. Card order keys (fractional indexing) must
+  compare byte by byte, so `applications.position` is `COLLATE "C"` (migration 0001). Found by
+  CI, whose Postgres uses `en_US` while local and Neon used `C.UTF-8`.

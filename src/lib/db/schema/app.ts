@@ -1,6 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
   check,
+  customType,
   index,
   integer,
   jsonb,
@@ -25,6 +26,14 @@ export const applicationStatus = pgEnum("application_status", APPLICATION_STATUS
 export const workMode = pgEnum("work_mode", WORK_MODES);
 export const remotePreference = pgEnum("remote_preference", REMOTE_PREFERENCES);
 export const aiUsageKind = pgEnum("ai_usage_kind", AI_USAGE_KINDS);
+
+/**
+ * Fractional index keys ("Zz" < "a0" < "a1") must compare byte by byte. Database default
+ * collations (e.g. en_US) ignore case and would put "Zz" after "a0", so the column is "C".
+ */
+const orderKey = customType<{ data: string }>({
+  dataType: () => 'text COLLATE "C"',
+});
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -64,7 +73,7 @@ export const applications = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     status: applicationStatus("status").notNull().default("saved"),
     /** Fractional index key: order of the card inside its column (ADR planned for Day 3). */
-    position: text("position").notNull(),
+    position: orderKey("position").notNull(),
     company: text("company").notNull(),
     role: text("role").notNull(),
     seniority: text("seniority"),
