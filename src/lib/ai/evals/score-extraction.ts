@@ -2,6 +2,9 @@ import { z } from "zod";
 
 import { WORK_MODES } from "@/features/board/constants";
 import { type OfferExtraction } from "@/features/extract/schemas";
+import { normalize, sameTech, techKey } from "@/lib/tech";
+
+export { normalize, techKey };
 
 /** What a correct extraction must contain. Fields left out are not scored. */
 export type ExpectedExtraction = {
@@ -42,33 +45,8 @@ export type EvalCase = z.infer<typeof evalCasesSchema>[number];
 
 export type Check = { field: string; pass: boolean; got: string; want: string };
 
-/** Lowercase, no Polish diacritics, no legal-form suffixes, single spaces. */
-export function normalize(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/ł/g, "l")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/\b(sp\.? z o\.? ?o\.?|s\.? ?a\.?|ltd\.?|gmbh|inc\.?)$/u, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-/**
- * "Next.js" = "NextJS" = "next js", "Vue 3" = "Vue", "Nuxt 3" = "Nuxt.js" = "Nuxt": the version
- * and the ".js" suffix are spelling, not a different technology.
- */
-export const techKey = (value: string) =>
-  normalize(value)
-    .replace(/\s*v?\d+(\.\d+)*(\+|\.x)?$/u, "")
-    .replace(/\.?js$/u, "")
-    .replace(/[\s.\-_/]/g, "");
-
 /** Found when the answer names it, alone or as part of a longer name ("Webpack Module Federation"). */
-const foundIn = (keys: string[], tech: string) => {
-  const want = techKey(tech);
-  return keys.some((key) => key === want || (want.length >= 4 && key.includes(want)));
-};
+const foundIn = (stack: string[], tech: string) => stack.some((have) => sameTech(have, tech));
 
 const show = (value: unknown) => (value == null || value === "" ? "-" : String(value));
 
@@ -115,8 +93,7 @@ export function scoreExtraction(actual: OfferExtraction, expected: ExpectedExtra
     `${show(expected.salaryMin)}..${show(expected.salaryMax)}`,
   );
 
-  const keys = actual.stack.map(techKey);
-  const missing = expected.stack.filter((tech) => !foundIn(keys, tech));
+  const missing = expected.stack.filter((tech) => !foundIn(actual.stack, tech));
   add(
     "stack",
     missing.length === 0,

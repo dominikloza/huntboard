@@ -12,9 +12,11 @@ import {
   type MoveInput,
 } from "@/features/board/schemas";
 import { type Application } from "@/features/board/types";
+import { scoreMatch } from "@/features/match/lib/score";
 import { requireSessionUser, requireUser } from "@/lib/auth/session";
 
 import { getDb, type Database } from "../client";
+import { profileOf } from "./profile";
 import { applications, type ApplicationRow } from "../schema";
 
 /*
@@ -52,14 +54,20 @@ export async function getBoardApplications(): Promise<Application[]> {
 
 /** One card for the details page/modal. 404 for invalid ids and for other users' cards. */
 /** The sheet shows more than the board card: the AI's warnings about the offer. */
-export type ApplicationDetails = Application & Pick<ApplicationRow, "redFlags">;
+export type ApplicationDetails = Application &
+  Pick<ApplicationRow, "redFlags" | "matchComment" | "roastComment">;
 
 export async function getApplicationOr404(id: string): Promise<ApplicationDetails> {
   const user = await requireUser();
   if (!applicationIdSchema.safeParse(id).success) notFound();
   await connection();
   const [row] = await getDb()
-    .select({ ...columns, redFlags: applications.redFlags })
+    .select({
+      ...columns,
+      redFlags: applications.redFlags,
+      matchComment: applications.matchComment,
+      roastComment: applications.roastComment,
+    })
     .from(applications)
     .where(and(eq(applications.id, id), eq(applications.userId, user.id)))
     .limit(1);
@@ -79,9 +87,10 @@ export async function createApplicationForSession(input: ApplicationInput): Prom
   const db = getDb();
   return db.transaction(async (tx) => {
     const position = positionAtTop(await firstPosition(tx, user.id, input.status));
+    const matchScore = scoreMatch(await profileOf(tx, user.id), input)?.score ?? null;
     const [row] = await tx
       .insert(applications)
-      .values({ ...input, userId: user.id, position })
+      .values({ ...input, userId: user.id, position, matchScore })
       .returning(columns);
     if (!row) throw new Error("Insert returned no row");
     return row;
@@ -108,11 +117,13 @@ export async function updateApplicationForSession(
       current.status === input.status
         ? undefined
         : positionAtTop(await firstPosition(tx, user.id, input.status));
+    const matchScore = scoreMatch(await profileOf(tx, user.id), input)?.score ?? null;
 
     const [row] = await tx
       .update(applications)
       .set({
         ...input,
+        matchScore,
         ...(position ? { position } : {}),
         version: sql`${applications.version} + 1`,
       })

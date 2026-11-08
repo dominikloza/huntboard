@@ -4,12 +4,10 @@
 and scores it against your profile, you move it through the process on a board. Roast mode lets
 an AI recruiter go over the offer with a red pen.
 
-> Status: **Day 6 of 10**. Sign-in (GitHub or guest), a live board with create / edit / delete in a
-> URL-addressable sheet, accessible drag & drop with optimistic saves, search and filters kept in
-> the URL, notes on every application, and AI intake: paste an offer and watch the form fill in, then
-> correct it and save. AI calls are rate limited per user and measured with evals. Match score
-> and roast mode are next.
-> See [`docs/PLAN.md`](docs/PLAN.md).
+> Status: **Day 7 of 10**. Sign-in (GitHub or guest), a live board with accessible drag & drop and
+> optimistic saves, search and filters in the URL, notes, AI intake (paste an offer, watch the
+> form fill in, correct, save), a profile with a match score on every card, and AI comments on the
+> match in two tones: a calm coach or a sarcastic recruiter with a red pen. Next: tests and polish.
 
 ## Why this project
 
@@ -37,6 +35,9 @@ Filters and notes: nuqs (filter state in the URL) · React 19 `useOptimistic`.
 
 AI: Vercel AI SDK 7 (`streamText` + `Output.object`, `useObject`), OpenAI or Gemini behind one
 `getModel()` adapter, a scripted demo model for e2e tests.
+
+Match: a deterministic, unit-tested score (stack, salary, work mode, level) stored on every card;
+the AI only comments on it, as a coach or in roast mode ([ADR 011](docs/adr/011-match-score-in-code.md)).
 
 AI safety and quality: per-user limits and a daily budget in Postgres (advisory lock, sliding
 window), token usage log, prompt injection defence, and `pnpm eval` with 12 scored test offers

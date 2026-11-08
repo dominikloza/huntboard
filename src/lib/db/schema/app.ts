@@ -20,6 +20,8 @@ import {
   WORK_MODES,
 } from "@/features/board/constants";
 
+import { type StoredMatchComment } from "@/features/match/schemas";
+
 import { user } from "./auth";
 
 export const applicationStatus = pgEnum("application_status", APPLICATION_STATUSES);
@@ -87,7 +89,11 @@ export const applications = pgTable(
     city: text("city"),
     redFlags: jsonb("red_flags").$type<string[]>().notNull().default([]),
     rawOffer: text("raw_offer"),
+    /** Computed in code from the profile (scoreMatch, ADR 011), not by the AI. */
     matchScore: smallint("match_score"),
+    /** Last AI comments on the match, one per tone. */
+    matchComment: jsonb("match_comment").$type<StoredMatchComment>(),
+    roastComment: jsonb("roast_comment").$type<StoredMatchComment>(),
     /** Optimistic concurrency: bumped on every change; a move must name the version it saw. */
     version: integer("version").notNull().default(1),
     ...timestamps,

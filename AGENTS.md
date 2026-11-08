@@ -73,6 +73,10 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
   `after()`. Never call a model from a Route Handler without it.
 - **Evals:** prompt or model changes must be followed by `pnpm eval` (real model, writes
   `evals/report.md`); add a case to `evals/extract/` for every bug the model makes.
+- **Match score (ADR 011):** computed only by `scoreMatch` (`src/features/match/lib/score.ts`),
+  never by a model. Every write that can change it (card create/update, profile save, guest seed)
+  stores the new score in the same transaction. AI comments explain the score; prompts must say
+  not to compute or contradict it.
 - **E2E never calls a real model:** Playwright starts the app with `AI_PROVIDER=mock`
   (`src/lib/ai/demo-model.ts`). Add new scripted answers there, not network mocks.
 - **Filters and search state live in the URL** (nuqs), not in a global store (ADR 008). Parsers

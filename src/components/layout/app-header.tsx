@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import { Stamp } from "@/components/paper/stamp";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { MainNav } from "@/components/layout/main-nav";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { requireUser } from "@/lib/auth/session";
 
@@ -27,11 +28,7 @@ export function AppHeader() {
       <Link href="/board" className="font-display text-[22px] font-extrabold tracking-[-0.03em]">
         Huntboard
       </Link>
-      <nav aria-label="Główna" className="flex gap-4 text-sm">
-        <Link href="/board" className="font-semibold underline decoration-2 underline-offset-[5px]">
-          Kartoteka
-        </Link>
-      </nav>
+      <MainNav />
       <div className="ml-auto flex items-center gap-4">
         <Suspense fallback={<div className="h-8 w-32" aria-hidden />}>
           <UserBadge />

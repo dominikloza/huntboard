@@ -1,3 +1,5 @@
+import { dataBlock } from "./data-block";
+
 /**
  * Prompt for turning a pasted job offer into OfferExtraction. The offer is untrusted input:
  * it goes in a delimited data block, never into the instructions (prompt injection defence,
@@ -17,17 +19,7 @@ Rules:
 - stack: technologies that matter for the role: frameworks, libraries (state management, data fetching, testing), build tools and platforms. Short canonical names without versions ("Vue", not "Vue 3"; "Nuxt", not "Nuxt 3"; "React", "TypeScript", "Next.js"), most important first, at most 12.
 - redFlags: at most 5 short warnings in Polish (max 12 words each) about things a candidate should check, e.g. no salary range, an unpaid multi-day task, vague duties, unrealistic requirements for the level. Empty array if there is nothing worth flagging.`;
 
-/**
- * Invisible characters (zero-width spaces, bidi overrides, other control characters) carry no
- * meaning in a job offer but can hide instructions from a human reviewer. Tabs and newlines stay.
- */
-const INVISIBLE =
-  /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]/g;
-
 /** Wraps the offer in its data block; a closing tag inside the text cannot end the block early. */
 export function offerPrompt(offer: string): string {
-  const safe = offer
-    .replace(INVISIBLE, "")
-    .replace(/<\/?offer>/gi, (tag) => tag.replace("<", "&lt;"));
-  return `<offer>\n${safe}\n</offer>`;
+  return dataBlock("offer", offer);
 }

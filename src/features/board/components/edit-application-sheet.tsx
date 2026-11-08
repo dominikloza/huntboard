@@ -12,9 +12,12 @@ import { useCloseSheet } from "./sheet-frame";
 
 export function EditApplicationSheet({
   application,
+  header,
   children,
 }: {
   application: Application;
+  /** Shown above the form (e.g. the match score). */
+  header?: ReactNode;
   /** Extra sections between the form and the danger zone (e.g. notes). */
   children?: ReactNode;
 }) {
@@ -32,6 +35,7 @@ export function EditApplicationSheet({
 
   return (
     <div className="flex flex-col gap-8">
+      {header && <div className="border-b-[1.5px] border-dashed border-border pb-6">{header}</div>}
       <ApplicationForm
         // Fresh server data (e.g. the card changed elsewhere) remounts the form with new values,
         // instead of showing a state kept alive from an earlier visit.

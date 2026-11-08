@@ -19,7 +19,7 @@ const optionalText = (max: number) =>
     .pipe(z.string().max(max, `Maksymalnie ${max} znaków.`).nullable());
 
 /** Accepts "17 000", "17000", 17000, "" or null. Monthly salary in PLN. */
-const salary = z
+export const salaryField = z
   .union([z.string(), z.number(), z.null()])
   .optional()
   .transform((value, ctx) => {
@@ -33,7 +33,7 @@ const salary = z
   });
 
 /** Accepts "React, TypeScript" or ["React", "TypeScript"]. Trims, drops empties and duplicates. */
-const stack = z
+export const stackField = z
   .union([z.string(), z.array(z.string())])
   .optional()
   .transform((value) => {
@@ -63,9 +63,9 @@ export const applicationInputSchema = z
     workMode: z.enum(WORK_MODES, { error: "Wybierz tryb pracy." }),
     city: optionalText(80),
     seniority: optionalText(40),
-    salaryMin: salary,
-    salaryMax: salary,
-    stack,
+    salaryMin: salaryField,
+    salaryMax: salaryField,
+    stack: stackField,
     // Set only when the card comes from a pasted offer (AI intake). Undefined = leave unchanged.
     rawOffer: z.string().trim().max(OFFER_MAX_LENGTH).optional(),
     redFlags: z.array(z.string().trim().min(1).max(200)).max(MAX_RED_FLAGS).optional(),

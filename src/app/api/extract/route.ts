@@ -4,24 +4,13 @@ import { after, connection } from "next/server";
 import { extractRequestSchema } from "@/features/extract/schemas";
 import { streamOfferExtraction } from "@/features/extract/server/stream-extraction";
 import { AiNotConfiguredError, getModel, modelLabel } from "@/lib/ai/model";
+import { settleWithin, textError } from "@/lib/ai/http";
 import { classifyProviderError, providerErrorMessage } from "@/lib/ai/provider-error";
 import { textStreamAfterFirstChunk } from "@/lib/ai/text-stream";
 import { UnauthorizedError } from "@/lib/auth/session";
 import { reserveAiCallForSession } from "@/lib/db/queries/ai-usage";
 
 export const maxDuration = 30;
-
-/** Errors are plain text: useObject shows the response body as the error message. */
-function fail(message: string, status: number, headers: Record<string, string> = {}) {
-  return new Response(message, {
-    status,
-    headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "no-store",
-      ...headers,
-    },
-  });
-}
 
 /**
  * Which model answers: lets the e2e suite refuse to run against a dev server that talks to a
@@ -35,14 +24,6 @@ export async function GET() {
   );
 }
 
-/** Resolves with the value, or undefined after `ms` (a cancelled stream never settles). */
-function settleWithin<T>(promise: PromiseLike<T>, ms: number): Promise<T | undefined> {
-  return Promise.race([
-    Promise.resolve(promise).catch(() => undefined),
-    new Promise<undefined>((resolve) => setTimeout(resolve, ms)),
-  ]);
-}
-
 /**
  * Streams a structured extraction of a pasted job offer (ADR 009, ADR 010).
  * Order matters, cheapest check first: input limits, provider configured, then the session and
@@ -52,7 +33,7 @@ export async function POST(request: Request) {
   const body: unknown = await request.json().catch(() => null);
   const parsed = extractRequestSchema.safeParse(body);
   if (!parsed.success) {
-    return fail(parsed.error.issues[0]?.message ?? "Nieprawidłowe dane.", 400);
+    return textError(parsed.error.issues[0]?.message ?? "Nieprawidłowe dane.", 400);
   }
 
   let model;
@@ -60,7 +41,7 @@ export async function POST(request: Request) {
     model = getModel();
   } catch (error) {
     if (error instanceof AiNotConfiguredError) {
-      return fail("AI nie jest skonfigurowane na tym serwerze. Wpisz dane ręcznie.", 503);
+      return textError("AI nie jest skonfigurowane na tym serwerze. Wpisz dane ręcznie.", 503);
     }
     throw error;
   }
@@ -70,12 +51,14 @@ export async function POST(request: Request) {
     reservation = await reserveAiCallForSession("extract", modelLabel(model));
   } catch (error) {
     if (error instanceof UnauthorizedError) {
-      return fail("Sesja wygasła. Zaloguj się ponownie.", 401);
+      return textError("Sesja wygasła. Zaloguj się ponownie.", 401);
     }
     throw error;
   }
   if (!reservation.ok) {
-    return fail(reservation.message, 429, { "Retry-After": String(reservation.retryAfterSeconds) });
+    return textError(reservation.message, 429, {
+      "Retry-After": String(reservation.retryAfterSeconds),
+    });
   }
 
   const result = streamOfferExtraction({
@@ -91,7 +74,7 @@ export async function POST(request: Request) {
     await reservation.refund();
     const problem = classifyProviderError(first.error);
     console.error(`AI extraction failed before streaming (${problem})`, first.error);
-    return fail(
+    return textError(
       providerErrorMessage(problem, process.env.NODE_ENV === "development"),
       problem === "rate-limit" ? 429 : 502,
     );
