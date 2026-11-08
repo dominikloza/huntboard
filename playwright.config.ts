@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { E2E_CRON_SECRET } from "./e2e/helpers";
+
 const PORT = Number(process.env.PORT ?? 3000);
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
 
@@ -43,6 +45,8 @@ export default defineConfig({
           AI_LIMIT_GUEST_PER_HOUR: "3",
           // Auth must trust the port the tests run on (overrides .env.local and CI env).
           BETTER_AUTH_URL: baseURL,
+          // Lets e2e/cron.spec.ts call the guest cleanup like Vercel Cron does.
+          CRON_SECRET: E2E_CRON_SECRET,
         },
       },
 });

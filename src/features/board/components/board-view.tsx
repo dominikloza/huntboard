@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useQueryStates } from "nuqs";
 import { useMemo } from "react";
 
+import { IntentLink } from "@/components/intent-link";
 import { Button } from "@/components/ui/button";
 import { pluralPl } from "@/lib/plural";
 
@@ -62,10 +63,10 @@ export function BoardView() {
             : `${applications.length} ${pluralPl(applications.length, ["teczka", "teczki", "teczek"])}, ${active.length} w obiegu`}
         </p>
         <Button asChild>
-          <Link href="/board/new">
+          <IntentLink href="/board/new">
             <Plus aria-hidden weight="bold" />
             Dodaj ofertę
-          </Link>
+          </IntentLink>
         </Button>
       </div>
 

@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
+import { preload } from "react-dom";
 
-import "@fontsource-variable/bricolage-grotesque/index.css";
+import "./fonts.css";
 import "@fontsource-variable/caveat/index.css";
-import "@fontsource/ibm-plex-sans/400.css";
-import "@fontsource/ibm-plex-sans/500.css";
-import "@fontsource/ibm-plex-sans/600.css";
-import "@fontsource/ibm-plex-mono/400.css";
-import "@fontsource/ibm-plex-mono/600.css";
 import "./globals.css";
 
 import { THEME_SCRIPT } from "@/lib/theme";
+
+/** Fonts on every first paint: headings and Polish body text (src/app/fonts.css). */
+const FIRST_PAINT_FONTS = [
+  "bricolage-grotesque-latin-wght-normal",
+  "ibm-plex-sans-latin-400-normal",
+  "ibm-plex-sans-latin-ext-400-normal",
+];
 
 export const metadata: Metadata = {
   title: {
@@ -20,6 +23,11 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  // The page headings (the LCP element) use this file: start the download with the HTML,
+  // not after the CSS has been parsed.
+  for (const font of FIRST_PAINT_FONTS) {
+    preload(`/fonts/${font}.woff2`, { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
+  }
   return (
     <html lang="pl" suppressHydrationWarning>
       <head>

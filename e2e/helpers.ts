@@ -1,5 +1,8 @@
 import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
 
+/** Only for the server Playwright starts (playwright.config.ts); never a real secret. */
+export const E2E_CRON_SECRET = "e2e-cron-secret-not-for-production";
+
 /** Every test gets its own guest account with fresh demo data. */
 export async function signInAsGuest(page: Page) {
   await page.goto("/login");

@@ -25,3 +25,14 @@ page needs, and `font-display: swap`.
 - Builds are reproducible offline; fonts are versioned in `package.json`.
 - No automatic fallback metrics: watch CLS on headings in Lighthouse (Day 9). If it is a problem,
   add `size-adjust` fallbacks or move display fonts to `next/font/local`.
+
+## Update (Day 9, Lighthouse)
+
+Fonts loaded from Fontsource CSS are found only after the stylesheet is parsed, and their URLs
+are hashed, so they cannot be preloaded. On simulated mobile this delayed the Largest
+Contentful Paint (a heading or the lead paragraph on every page). Bricolage Grotesque, IBM Plex
+Sans and IBM Plex Mono are now copied into `public/fonts` (latin and latin-ext only) and declared
+in `src/app/fonts.css` with the same `unicode-range` and `font-display: swap`. The root layout
+preloads the three files every first paint needs (headings, body latin, body latin-ext) with
+`preload()` from `react-dom`. Caveat stays a Fontsource import: it appears only in `PenNote`.
+When upgrading a Fontsource package, copy its files again. CLS stays at about 0.02.

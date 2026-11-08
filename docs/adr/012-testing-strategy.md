@@ -51,5 +51,5 @@ floor, not a goal.
 
 - A failing layer says what broke: logic, a component state, the integrated app, or the model.
 - Deployment e2e on production creates guest accounts like any visitor; they hold only demo
-  data. A scheduled cleanup of old guest accounts belongs to the polish phase.
+  data. A daily cron deletes them once they are stale (ADR 013).
 - Evals cost a few cents (free on Gemini's free tier) and are not part of CI.

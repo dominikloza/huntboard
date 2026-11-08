@@ -50,6 +50,7 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
   In render paths, call `await connection()` (from `next/server`) after `requireUser()` and before
   the first query: opening a Postgres connection uses crypto randomness, which Next.js forbids
   while prerendering.
+  The only exception is the guest cleanup cron (ADR 013), a system job guarded by `CRON_SECRET`.
 - **Session reads go behind `<Suspense>`** (Cache Components). Use `getCurrentUser()` /
   `requireUser()` from `src/lib/auth/session.ts`; never read cookies in a layout's top level.
 - Never edit `src/lib/db/schema/auth.ts` or `drizzle/*.sql` by hand; regenerate them.
@@ -90,6 +91,10 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
   filtering must map neighbours with `neighboursInFullColumn`.
 - **Notes (ADR 008):** Server Actions return `NoteResult`; the UI uses `useOptimistic`. Never call
   `refresh()` from an action used inside the `@modal` sheet: it turns the modal into the full page.
+- **Links to heavy routes** that appear many times on a page (board cards, "Dodaj ofertę")
+  use `IntentLink` (`src/components/intent-link.tsx`): it prefetches on hover, focus or touch,
+  not on entering the viewport, so the modal's form, Zod and AI code are not downloaded on
+  every board visit.
 - Server Components by default. Add `"use client"` only to the smallest interactive leaf.
 - Tests: pure logic gets a Vitest test next to the file (`*.test.ts`). Components get Testing
   Library tests that query by role/label, not by class names.

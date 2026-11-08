@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { type ReactNode } from "react";
 
+import { IntentLink } from "@/components/intent-link";
 import { Stamp } from "@/components/paper/stamp";
 import { formatSalaryRange } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -39,12 +39,12 @@ export function OfferCard({ application, href, handle, className }: OfferCardPro
       </div>
       <h3 className="mt-0.5 mb-2 pr-9 font-display text-[15px] leading-tight font-bold tracking-tight">
         {href ? (
-          <Link
+          <IntentLink
             href={href}
             className="outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-primary-ink"
           >
             {role}
-          </Link>
+          </IntentLink>
         ) : (
           role
         )}
