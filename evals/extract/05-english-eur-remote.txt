@@ -1,0 +1,13 @@
+Senior Frontend Developer (Svelte) - fully remote, EU
+
+Fjordline Health is a Norwegian health-tech startup building patient scheduling tools for clinics.
+
+Compensation: EUR 5,000 - 6,500 per month, B2B contract.
+
+You will:
+- own the patient-facing web app built with SvelteKit and TypeScript,
+- work closely with our designer on accessibility (WCAG 2.2 AA),
+- write end-to-end tests with Playwright.
+
+Requirements: 5+ years of frontend experience, strong TypeScript, experience shipping Svelte or similar frameworks.
+Remote within the EU, async-first team, two offsites a year.

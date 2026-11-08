@@ -139,6 +139,52 @@ test.describe("AI offer intake", () => {
   }
 });
 
+test.describe("AI limits", () => {
+  test.beforeEach(async ({ page }) => {
+    await signInAsGuest(page);
+  });
+
+  test("a guest gets 3 extractions an hour, then a clear message", async ({ page }) => {
+    for (let i = 0; i < 3; i++) {
+      const response = await page.request.post("/api/extract", { data: { offer: OFFER } });
+      expect(response.status()).toBe(200);
+      await response.body(); // read the whole stream, like the browser does
+    }
+
+    const blocked = await page.request.post("/api/extract", { data: { offer: OFFER } });
+    expect(blocked.status()).toBe(429);
+    expect(Number(blocked.headers()["retry-after"])).toBeGreaterThan(3500);
+
+    const dialog = await paste(page, OFFER);
+    await expect(dialog.getByRole("alert").filter({ hasText: /\S/ })).toHaveText(
+      /^Limit: 3 wypełnień z AI na godzinę na koncie gościa .* Następne za 60 min\./,
+    );
+    await expect(dialog.getByLabel("Firma")).toBeEditable();
+  });
+
+  test("parallel requests cannot sneak past the limit", async ({ page }) => {
+    // Without the per-user lock all six would see "0 of 3 used" and pass.
+    const responses = await Promise.all(
+      Array.from({ length: 6 }, () =>
+        page.request.post("/api/extract", { data: { offer: OFFER } }),
+      ),
+    );
+    const statuses = responses.map((r) => r.status()).sort();
+    expect(statuses).toEqual([200, 200, 200, 429, 429, 429]);
+  });
+
+  test("failed calls do not use up the limit", async ({ page }) => {
+    for (let i = 0; i < 4; i++) {
+      const response = await page.request.post("/api/extract", {
+        data: { offer: `${OFFER}\n[demo:fail]` },
+      });
+      expect(response.status()).toBe(502);
+    }
+    const response = await page.request.post("/api/extract", { data: { offer: OFFER } });
+    expect(response.status()).toBe(200);
+  });
+});
+
 test("the API refuses requests without a session", async ({ request }) => {
   const response = await request.post("/api/extract", { data: { offer: OFFER } });
   expect(response.status()).toBe(401);

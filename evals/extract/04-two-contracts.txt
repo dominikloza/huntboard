@@ -1,0 +1,11 @@
+React Developer
+Morszczuk Logistics - Gdańsk (hybrydowo, 2 dni w biurze)
+
+Wynagrodzenie:
+- UoP: 15 000 - 19 000 zł brutto
+- B2B: 18 000 - 23 000 zł netto + VAT
+
+Poziom: Mid / Regular.
+
+Stack: React, TypeScript, Redux Toolkit, React Query, Jest, React Testing Library.
+Projekt: system śledzenia przesyłek kontenerowych dla portu w Gdańsku. Zespół 6 osób, Scrum, dwutygodniowe sprinty.

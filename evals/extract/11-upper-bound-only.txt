@@ -1,0 +1,9 @@
+Regular Frontend Developer
+Kopiec Studio - Warszawa (Mokotów), praca hybrydowa 3/2
+
+Wynagrodzenie: do 20 000 zł netto + VAT (B2B).
+
+Projektujemy i budujemy aplikacje dla muzeów i instytucji kultury. Szukamy osoby, która dba o detale i dostępność.
+
+Technologie: TypeScript, React, Storybook, Tailwind CSS.
+Mile widziane: doświadczenie z WCAG i czytnikami ekranu.

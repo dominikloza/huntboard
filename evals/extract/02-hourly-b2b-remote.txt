@@ -1,0 +1,16 @@
+Senior Frontend Engineer (Angular)
+Torfowisko Systems | 100% zdalnie | B2B
+
+Budujemy platformę do zarządzania flotą pojazdów elektrycznych dla klientów w DACH i Skandynawii.
+
+Stawka: 140 - 170 PLN/h netto (B2B), 8h dziennie, pełen etat.
+
+Czego oczekujemy:
+- 5+ lat doświadczenia z Angular (najnowsze wersje, Signals),
+- bardzo dobrej znajomości RxJS i NgRx,
+- doświadczenia z monorepo w Nx,
+- komunikatywnego angielskiego (B2).
+
+Mile widziane: Cypress, doświadczenie z mapami (Mapbox GL).
+
+Pracujemy w pełni zdalnie, spotkania zespołu raz na kwartał w Gdyni (koszty pokrywamy).

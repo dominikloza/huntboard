@@ -68,6 +68,11 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
   optional). Pasted user text goes into a delimited data block (`src/lib/ai/prompts`), never
   into instructions. Stream with `textStreamAfterFirstChunk` so early provider errors become
   HTTP errors. AI output is a draft: the user confirms before anything is saved.
+- **Every AI call reserves a slot first (ADR 010):** `reserveAiCallForSession(kind, model)`
+  before the model call, `refund()` if the provider fails before answering, `record(usage)` in
+  `after()`. Never call a model from a Route Handler without it.
+- **Evals:** prompt or model changes must be followed by `pnpm eval` (real model, writes
+  `evals/report.md`); add a case to `evals/extract/` for every bug the model makes.
 - **E2E never calls a real model:** Playwright starts the app with `AI_PROVIDER=mock`
   (`src/lib/ai/demo-model.ts`). Add new scripted answers there, not network mocks.
 - **Filters and search state live in the URL** (nuqs), not in a global store (ADR 008). Parsers

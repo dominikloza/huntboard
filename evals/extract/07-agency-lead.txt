@@ -1,0 +1,13 @@
+Lead Frontend Developer - e-commerce (hybrydowo, Kraków)
+
+Rekrutujemy dla naszego klienta, jednego z największych polskich sklepów internetowych z elektroniką. Proces prowadzi TalentBridge Rekrutacja IT.
+
+Widełki: 25 000 - 30 000 zł netto + VAT na B2B.
+Praca hybrydowa: 1 dzień w tygodniu w biurze w Krakowie.
+
+Zakres:
+- prowadzenie zespołu 5 frontendowców,
+- rozwój architektury mikrofrontendów (Module Federation, Webpack),
+- React i TypeScript na co dzień, decyzje techniczne razem z architektem.
+
+Oczekujemy 7+ lat doświadczenia, w tym min. 2 lata jako tech lead.

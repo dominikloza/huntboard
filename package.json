@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
+    "eval": "tsx --conditions=react-server scripts/eval.ts",
     "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -53,7 +54,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
-    "@next/env": "^16.4.5",
+    "@next/env": "16.4.5",
     "@playwright/test": "^1.65.0",
     "@tailwindcss/turbopack": "^4",
     "@testing-library/dom": "^10.4.2",

@@ -1,0 +1,9 @@
+Senior React Developer (GraphQL)
+Szuwar Media | zdalnie | kontrakt B2B na 12 miesięcy z opcją przedłużenia
+
+Stawka: 900 - 1 100 zł netto za dzień.
+
+Rozwijamy platformę streamingową dla regionalnych telewizji. Potrzebujemy seniora, który przejmie frontend odtwarzacza i panelu redakcji.
+
+Stack: React, TypeScript, GraphQL, Apollo Client, Vitest.
+Wymagamy 5+ lat doświadczenia z React i doświadczenia z GraphQL w produkcji. Praca w pełni zdalna.

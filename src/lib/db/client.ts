@@ -5,6 +5,8 @@ import { Pool } from "pg";
 
 import { serverEnv } from "@/lib/env";
 
+import { withExplicitSslMode } from "./ssl-mode";
+
 import * as schema from "./schema";
 
 export type Database = NodePgDatabase<typeof schema>;
@@ -18,7 +20,11 @@ export function getDb(): Database {
 
   const pool =
     globalForDb.huntboardPool ??
-    new Pool({ connectionString: serverEnv().DATABASE_URL, max: 5, idleTimeoutMillis: 10_000 });
+    new Pool({
+      connectionString: withExplicitSslMode(serverEnv().DATABASE_URL),
+      max: 5,
+      idleTimeoutMillis: 10_000,
+    });
   const db = drizzle(pool, { schema });
 
   globalForDb.huntboardPool = pool;

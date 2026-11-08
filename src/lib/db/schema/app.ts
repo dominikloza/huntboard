@@ -120,7 +120,7 @@ export const notes = pgTable(
   (t) => [index("notes_application_idx").on(t.applicationId)],
 );
 
-/** Token usage per AI call: cost tracking and per-user limits (Day 6). */
+/** One row per AI call (reserved before the call, tokens filled in after): limits and cost. */
 export const aiUsage = pgTable(
   "ai_usage",
   {
@@ -134,7 +134,12 @@ export const aiUsage = pgTable(
     outputTokens: integer("output_tokens").notNull().default(0),
     createdAt: timestamps.createdAt,
   },
-  (t) => [index("ai_usage_user_created_idx").on(t.userId, t.createdAt)],
+  (t) => [
+    // Per-user hourly limit (ADR 010).
+    index("ai_usage_user_created_idx").on(t.userId, t.createdAt),
+    // Daily budget across all users.
+    index("ai_usage_created_idx").on(t.createdAt),
+  ],
 );
 
 export const applicationsRelations = relations(applications, ({ one, many }) => ({

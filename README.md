@@ -4,10 +4,11 @@
 and scores it against your profile, you move it through the process on a board. Roast mode lets
 an AI recruiter go over the offer with a red pen.
 
-> Status: **Day 5 of 10**. Sign-in (GitHub or guest), a live board with create / edit / delete in a
+> Status: **Day 6 of 10**. Sign-in (GitHub or guest), a live board with create / edit / delete in a
 > URL-addressable sheet, accessible drag & drop with optimistic saves, search and filters kept in
 > the URL, notes on every application, and AI intake: paste an offer and watch the form fill in, then
-> correct it and save. Match score and roast mode are next.
+> correct it and save. AI calls are rate limited per user and measured with evals. Match score
+> and roast mode are next.
 > See [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Why this project
@@ -37,7 +38,9 @@ Filters and notes: nuqs (filter state in the URL) · React 19 `useOptimistic`.
 AI: Vercel AI SDK 7 (`streamText` + `Output.object`, `useObject`), OpenAI or Gemini behind one
 `getModel()` adapter, a scripted demo model for e2e tests.
 
-Coming next: Upstash rate limiting, usage limits, evals.
+AI safety and quality: per-user limits and a daily budget in Postgres (advisory lock, sliding
+window), token usage log, prompt injection defence, and `pnpm eval` with 12 scored test offers
+([latest report](evals/report.md)).
 
 ## Decisions
 
@@ -60,14 +63,15 @@ pnpm exec playwright install chromium   # once, for e2e tests
 
 No GitHub app yet? Click "Wejdź jako gość": the guest account works with the database alone.
 
-| Command       | What it does                                              |
-| ------------- | --------------------------------------------------------- |
-| `pnpm check`  | lint + format check + typecheck + unit tests              |
-| `pnpm test`   | Vitest unit and component tests                           |
-| `pnpm e2e`    | Playwright e2e + axe (light and dark, desktop and mobile) |
-| `pnpm format` | Prettier with Tailwind class sorting                      |
+| Command       | What it does                                                     |
+| ------------- | ---------------------------------------------------------------- |
+| `pnpm check`  | lint + format check + typecheck + unit tests                     |
+| `pnpm test`   | Vitest unit and component tests                                  |
+| `pnpm e2e`    | Playwright e2e + axe (light and dark, desktop and mobile)        |
+| `pnpm format` | Prettier with Tailwind class sorting                             |
+| `pnpm eval`   | AI extraction evals on the configured model -> `evals/report.md` |
 
-Copy `.env.example` to `.env.local` when the database, auth and AI features land.
+Copy `.env.example` to `.env.local` and fill it in.
 
 ## Working with AI agents
 

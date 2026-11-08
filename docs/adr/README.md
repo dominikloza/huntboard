@@ -11,7 +11,4 @@
 | 007 | [Drag & drop: dnd-kit, fractional positions, optimistic moves](007-drag-and-drop.md)                        | Accepted |
 | 008 | [Filters in the URL, notes with useOptimistic](008-url-filters-and-notes.md)                                | Accepted |
 | 009 | [Streaming offer extraction with a human in the loop](009-streaming-offer-extraction.md)                    | Accepted |
-
-Planned (write them when the decision is made, see `docs/PLAN.md` §8):
-
-- AI cost protection: rate limit, input limits, guest account (Day 6)
+| 010 | [AI cost protection: limits in Postgres, usage log, injection defence, evals](010-ai-cost-protection.md)    | Accepted |

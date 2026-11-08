@@ -57,3 +57,8 @@ export function getModel(): LanguageModel {
   if (!apiKey) throw new AiNotConfiguredError();
   return createOpenAI({ apiKey })(modelId ?? DEFAULT_MODEL.openai);
 }
+
+/** "google:gemini-3.5-flash-lite": stored with every AI call (cost per model). */
+export function modelLabel(model: LanguageModel): string {
+  return typeof model === "string" ? model : `${model.provider}:${model.modelId}`;
+}

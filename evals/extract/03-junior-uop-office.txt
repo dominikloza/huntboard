@@ -1,0 +1,14 @@
+Junior Frontend Developer (Vue)
+Piekarnia Kodu sp. z o.o. - Łódź, ul. Piotrkowska
+
+Umowa o pracę: 7 000 - 9 000 zł brutto miesięcznie.
+
+Szukamy osoby na start kariery do zespołu, który rozwija sklep internetowy sieci piekarni rzemieślniczych.
+
+Twoje zadania:
+- tworzenie widoków w Vue 3 (Composition API) i Pinia,
+- stylowanie w SCSS według makiet z Figmy,
+- praca z Vite i prostym REST API.
+
+Wymagania: podstawy JavaScript i TypeScript, znajomość Gita, chęć nauki.
+Praca stacjonarna w biurze w Łodzi, 5 dni w tygodniu. Mentor na pierwsze 6 miesięcy.

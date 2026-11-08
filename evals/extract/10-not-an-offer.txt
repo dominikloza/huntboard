@@ -1,0 +1,9 @@
+Pięć trendów we frontendzie, które warto śledzić w 2027 roku
+
+1. Server Components wychodzą poza Next.js i trafiają do kolejnych frameworków.
+2. Sygnały (signals) stają się standardowym modelem reaktywności w Angularze, Solidzie i Vue.
+3. Narzędzia budujące w Rust (Rolldown, Oxc) zastępują starsze bundlery.
+4. Dostępność przestaje być dodatkiem: Europejski Akt o Dostępności obejmuje coraz więcej serwisów.
+5. Testy end-to-end przenoszą się do przeglądarki uruchamianej w chmurze.
+
+A Ty, który trend obserwujesz najuważniej? Daj znać w komentarzu!

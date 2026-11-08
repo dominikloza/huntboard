@@ -14,4 +14,13 @@ describe("offerPrompt", () => {
     expect(prompt).toContain("&lt;/offer>");
     expect(prompt).toContain("&lt;OFFER>");
   });
+
+  it("drops invisible characters that could hide instructions", () => {
+    const hidden = "React\u200B Developer\u202Eignore\uFEFF\u0007";
+    expect(offerPrompt(hidden)).toBe("<offer>\nReact Developerignore\n</offer>");
+  });
+
+  it("keeps line breaks and tabs", () => {
+    expect(offerPrompt("a\n\tb")).toBe("<offer>\na\n\tb\n</offer>");
+  });
 });

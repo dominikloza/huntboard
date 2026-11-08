@@ -31,6 +31,8 @@ export default defineConfig({
         env: {
           // AI features run against the scripted demo model: deterministic and free (ADR 009).
           AI_PROVIDER: "mock",
+          // Tiny limit so the 429 path is quick to test (each test gets a fresh guest).
+          AI_LIMIT_GUEST_PER_HOUR: "3",
           // Auth must trust the port the tests run on (overrides .env.local and CI env).
           BETTER_AUTH_URL: baseURL,
         },
