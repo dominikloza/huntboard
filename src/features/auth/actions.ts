@@ -17,8 +17,13 @@ export async function signIn(_prev: SignInState, formData: FormData): Promise<Si
   const next = safeRedirectPath(formData.get("next"));
 
   if (method === "guest") {
+    const requestHeaders = await headers();
+    // Already signed in (e.g. the login form was open in another tab, or a session from an
+    // earlier visit): Better Auth refuses a second anonymous sign-in, so just continue.
+    const session = await getAuth().api.getSession({ headers: requestHeaders });
+    if (session) redirect(next);
     try {
-      await getAuth().api.signInAnonymous({ headers: await headers() });
+      await getAuth().api.signInAnonymous({ headers: requestHeaders });
     } catch (error) {
       console.error("Guest sign-in failed", error);
       return { error: "Nie udało się otworzyć konta gościa. Spróbuj ponownie." };

@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+import { signInAsGuest } from "./helpers";
+
 test.describe("authentication", () => {
   test("the board requires a session", async ({ page }) => {
     await page.goto("/board");
@@ -56,4 +58,21 @@ test.describe("without JavaScript", () => {
     await expect(page).toHaveURL(/\/board$/);
     await expect(page.getByRole("heading", { level: 1, name: "Kartoteka" })).toBeVisible();
   });
+});
+
+test("a guest who is already signed in in another tab just continues to the board", async ({
+  context,
+}) => {
+  // Regression: the login form open in an old tab called the anonymous sign-in again, which
+  // Better Auth refuses ("Anonymous users cannot sign in again anonymously").
+  const oldTab = await context.newPage();
+  await oldTab.goto("/login");
+  await expect(oldTab.getByRole("button", { name: "Wejdź jako gość" })).toBeVisible();
+
+  const newTab = await context.newPage();
+  await signInAsGuest(newTab);
+
+  await oldTab.getByRole("button", { name: "Wejdź jako gość" }).click();
+  await expect(oldTab).toHaveURL(/\/board$/);
+  await expect(oldTab.getByText("Nie udało się otworzyć konta gościa")).toHaveCount(0);
 });
