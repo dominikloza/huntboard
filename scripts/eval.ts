@@ -14,6 +14,7 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 
 import { loadEnvConfig } from "@next/env";
+import { format, resolveConfig } from "prettier";
 import { streamOfferExtraction } from "@/features/extract/server/stream-extraction";
 import {
   type Check,
@@ -146,7 +147,9 @@ async function main() {
   });
 
   const { markdown, score } = report(label, results);
-  await writeFile(REPORT, markdown);
+  // Same formatting as `pnpm format`, so the committed report passes `format:check` in CI.
+  const options = (await resolveConfig(REPORT)) ?? {};
+  await writeFile(REPORT, await format(markdown, { ...options, filepath: REPORT }));
   console.log(`\n${markdown.split("\n")[4]}\nReport: evals/report.md`);
 
   const min = values.min ? Number(values.min) : undefined;
