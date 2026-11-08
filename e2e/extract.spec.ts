@@ -4,7 +4,7 @@ import path from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 
-import { cards, signInAsGuest } from "./helpers";
+import { cards, requireDemoModel, signInAsGuest } from "./helpers";
 
 /*
  * Runs against the demo model (AI_PROVIDER=mock, set by playwright.config.ts): it streams a fixed
@@ -30,15 +30,9 @@ async function paste(page: Page, text: string) {
 const axe = (page: Page) =>
   new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
 
+let guestLimit = 3;
 test.beforeAll(async ({ request }) => {
-  // Playwright reuses a running `pnpm dev`. Never run these tests against a real, paid model.
-  const { mock } = (await (await request.get("/api/extract")).json()) as { mock: boolean };
-  if (!mock) {
-    throw new Error(
-      "The running dev server uses a real AI model. Stop it (pnpm e2e starts its own) " +
-        "or start it with AI_PROVIDER=mock.",
-    );
-  }
+  ({ guestLimit } = await requireDemoModel(request));
 });
 
 test.describe("AI offer intake", () => {
@@ -144,8 +138,8 @@ test.describe("AI limits", () => {
     await signInAsGuest(page);
   });
 
-  test("a guest gets 3 extractions an hour, then a clear message", async ({ page }) => {
-    for (let i = 0; i < 3; i++) {
+  test("a guest gets a few extractions an hour, then a clear message", async ({ page }) => {
+    for (let i = 0; i < guestLimit; i++) {
       const response = await page.request.post("/api/extract", { data: { offer: OFFER } });
       expect(response.status()).toBe(200);
       await response.body(); // read the whole stream, like the browser does
@@ -157,20 +151,25 @@ test.describe("AI limits", () => {
 
     const dialog = await paste(page, OFFER);
     await expect(dialog.getByRole("alert").filter({ hasText: /\S/ })).toHaveText(
-      /^Limit: 3 wypełnień z AI na godzinę na koncie gościa .* Następne za 60 min\./,
+      new RegExp(
+        `^Limit: ${guestLimit} wypełnień z AI na godzinę na koncie gościa .* Następne za 60 min\\.`,
+      ),
     );
     await expect(dialog.getByLabel("Firma")).toBeEditable();
   });
 
   test("parallel requests cannot sneak past the limit", async ({ page }) => {
-    // Without the per-user lock all six would see "0 of 3 used" and pass.
+    // Without the per-user lock every request would see "0 used" and pass.
     const responses = await Promise.all(
-      Array.from({ length: 6 }, () =>
+      Array.from({ length: guestLimit * 2 }, () =>
         page.request.post("/api/extract", { data: { offer: OFFER } }),
       ),
     );
     const statuses = responses.map((r) => r.status()).sort();
-    expect(statuses).toEqual([200, 200, 200, 429, 429, 429]);
+    expect(statuses).toEqual([
+      ...Array<number>(guestLimit).fill(200),
+      ...Array<number>(guestLimit).fill(429),
+    ]);
   });
 
   test("failed calls do not use up the limit", async ({ page }) => {

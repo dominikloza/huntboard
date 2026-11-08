@@ -13,6 +13,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { REMOTE_PREFERENCES } from "@/features/board/constants";
 import { applicationKeys } from "@/features/board/query-keys";
+import { pluralPl } from "@/lib/plural";
 
 import { saveProfile } from "../actions";
 import {
@@ -22,12 +23,7 @@ import {
   REMOTE_PREFERENCE_LABELS,
 } from "../schemas";
 
-const cards = (n: number) =>
-  n === 1
-    ? "kartę"
-    : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)
-      ? "karty"
-      : "kart";
+const cards = (n: number) => pluralPl(n, ["kartę", "karty", "kart"]);
 
 export function ProfileForm({ defaultValues }: { defaultValues: ProfileFormValues }) {
   const queryClient = useQueryClient();

@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 
-import { column, signInAsGuest } from "./helpers";
+import { column, requireDemoModel, signInAsGuest } from "./helpers";
 
 /*
  * Match score (computed in code) and AI comments (demo model, AI_PROVIDER=mock).
@@ -18,7 +18,7 @@ async function openCard(page: Page, role: string) {
   return sheet;
 }
 
-test.describe("match score and AI comments", () => {
+test.describe("match score and profile", () => {
   test.beforeEach(async ({ page }) => {
     await signInAsGuest(page);
   });
@@ -32,6 +32,52 @@ test.describe("match score and AI comments", () => {
     await expect(sheet.getByRole("img", { name: "Dopasowanie 82 na 100" })).toBeVisible();
     await expect(sheet.getByText("Znasz 2 z 3. Brakuje: Redux.")).toBeVisible();
     await expect(sheet.getByText("Praca hybrydowa, tak jak chcesz.")).toBeVisible();
+  });
+
+  test("changing the profile recomputes every score", async ({ page }) => {
+    await page.getByRole("link", { name: "Profil" }).click();
+    await expect(page).toHaveURL(/\/profile$/);
+    await expect(page.getByRole("link", { name: "Profil" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+
+    const skills = page.getByLabel("Twoje technologie");
+    await expect(skills).toHaveValue("React, TypeScript, Next.js, Tailwind CSS, Jest");
+    await skills.fill("React, TypeScript, Next.js, Tailwind CSS, Jest, Redux");
+    await page.getByRole("button", { name: "Zapisz profil" }).click();
+    await expect(page.getByRole("status")).toHaveText(
+      /^Zapisano\. Przeliczyłem dopasowanie: \d+ kart(y|ę)?\. Wróć do kartoteki$/,
+    );
+
+    await page.getByRole("link", { name: "Wróć do kartoteki" }).click();
+    const card = column(page, "Zapisane").getByRole("article").filter({ hasText: "Mewa Fintech" });
+    await expect(card.getByRole("img", { name: "Dopasowanie 100 na 100" })).toBeVisible();
+
+    await page.reload();
+    await expect(card.getByRole("img", { name: "Dopasowanie 100 na 100" })).toBeVisible();
+  });
+
+  test("the profile form checks its fields", async ({ page }) => {
+    // Client navigation: the form is hydrated when it appears (a fast bot could submit the
+    // server-rendered form before React takes over).
+    await page.getByRole("link", { name: "Profil" }).click();
+    await page.getByLabel("Twoje technologie").fill(" , ");
+    await page.getByLabel("Lata doświadczenia").fill("70");
+    await page.getByRole("button", { name: "Zapisz profil" }).click();
+    await expect(page.getByText("Wpisz co najmniej jedną technologię.")).toBeVisible();
+    await expect(page.getByText("Wpisz liczbę lat od 0 do 60.")).toBeVisible();
+  });
+});
+
+// These call the AI (demo model only): skipped against a deployment that uses a real model.
+test.describe("AI comments", () => {
+  test.beforeAll(async ({ request }) => {
+    await requireDemoModel(request);
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await signInAsGuest(page);
   });
 
   test("an AI comment streams in, is kept with the card and shown again later", async ({
@@ -72,41 +118,6 @@ test.describe("match score and AI comments", () => {
     await sheet.getByRole("button", { name: "Komentarz", exact: true }).click();
     await expect(sheet.getByRole("article", { name: "Roast" })).toHaveCount(0);
     await expect(sheet.getByRole("button", { name: "Skomentuj z AI" })).toBeVisible();
-  });
-
-  test("changing the profile recomputes every score", async ({ page }) => {
-    await page.getByRole("link", { name: "Profil" }).click();
-    await expect(page).toHaveURL(/\/profile$/);
-    await expect(page.getByRole("link", { name: "Profil" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-
-    const skills = page.getByLabel("Twoje technologie");
-    await expect(skills).toHaveValue("React, TypeScript, Next.js, Tailwind CSS, Jest");
-    await skills.fill("React, TypeScript, Next.js, Tailwind CSS, Jest, Redux");
-    await page.getByRole("button", { name: "Zapisz profil" }).click();
-    await expect(page.getByRole("status")).toHaveText(
-      /^Zapisano\. Przeliczyłem dopasowanie: \d+ kart(y|ę)?\. Wróć do kartoteki$/,
-    );
-
-    await page.getByRole("link", { name: "Wróć do kartoteki" }).click();
-    const card = column(page, "Zapisane").getByRole("article").filter({ hasText: "Mewa Fintech" });
-    await expect(card.getByRole("img", { name: "Dopasowanie 100 na 100" })).toBeVisible();
-
-    await page.reload();
-    await expect(card.getByRole("img", { name: "Dopasowanie 100 na 100" })).toBeVisible();
-  });
-
-  test("the profile form checks its fields", async ({ page }) => {
-    // Client navigation: the form is hydrated when it appears (a fast bot could submit the
-    // server-rendered form before React takes over).
-    await page.getByRole("link", { name: "Profil" }).click();
-    await page.getByLabel("Twoje technologie").fill(" , ");
-    await page.getByLabel("Lata doświadczenia").fill("70");
-    await page.getByRole("button", { name: "Zapisz profil" }).click();
-    await expect(page.getByText("Wpisz co najmniej jedną technologię.")).toBeVisible();
-    await expect(page.getByText("Wpisz liczbę lat od 0 do 60.")).toBeVisible();
   });
 
   for (const theme of ["light", "dark"] as const) {

@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
 
 /** Every test gets its own guest account with fresh demo data. */
 export async function signInAsGuest(page: Page) {
@@ -41,4 +41,29 @@ export async function keyboardMove(page: Page, role: string, company: string, st
   }
   await page.keyboard.press("Space");
   await expect(liveRegion(page)).toContainText(`Przeniesiono kartę ${role}`);
+}
+
+/**
+ * AI tests must never call a real, paid model. Locally (Playwright may reuse your `pnpm dev`)
+ * that is an error; against a deployment (E2E_BASE_URL, e.g. production with Gemini) the AI
+ * tests are skipped and everything else still runs. Returns the server's guest limit.
+ */
+export async function requireDemoModel(
+  request: APIRequestContext,
+): Promise<{ guestLimit: number }> {
+  const status = (await (await request.get("/api/extract")).json()) as {
+    mock: boolean;
+    guestLimit: number;
+  };
+  if (!status.mock) {
+    if (process.env.E2E_BASE_URL) {
+      test.skip(true, "This deployment uses a real AI model: AI tests skipped.");
+    } else {
+      throw new Error(
+        "The running dev server uses a real AI model. Stop it (pnpm e2e starts its own) " +
+          "or start it with AI_PROVIDER=mock.",
+      );
+    }
+  }
+  return { guestLimit: status.guestLimit };
 }

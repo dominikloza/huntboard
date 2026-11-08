@@ -1,0 +1,40 @@
+name: E2E on deployment
+
+# Runs the Playwright suite against every successful Vercel deployment (Preview and
+# Production), using the deployment's URL. AI tests skip themselves on a deployment that uses a
+# real model (production); a Preview with AI_PROVIDER=mock runs them too.
+on: deployment_status
+
+concurrency:
+  group: e2e-deployment-${{ github.event.deployment.environment }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: E2E against ${{ github.event.deployment.environment }}
+    if: github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: "true"
+      E2E_BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: echo "Testing $E2E_BASE_URL"
+      - run: pnpm e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.event.deployment.environment }}
+          path: playwright-report
+          retention-days: 7

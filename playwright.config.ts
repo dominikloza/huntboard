@@ -12,6 +12,14 @@ export default defineConfig({
   use: {
     baseURL,
     trace: "on-first-retry",
+    // Vercel Preview deployments are protected by default; this header lets CI through
+    // ("Protection Bypass for Automation" in the Vercel project settings).
+    extraHTTPHeaders: process.env.VERCEL_AUTOMATION_BYPASS_SECRET
+      ? {
+          "x-vercel-protection-bypass": process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+          "x-vercel-set-bypass-cookie": "true",
+        }
+      : undefined,
     launchOptions: process.env.PW_CHROMIUM_PATH
       ? { executablePath: process.env.PW_CHROMIUM_PATH }
       : {},

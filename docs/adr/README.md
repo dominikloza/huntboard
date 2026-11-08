@@ -13,3 +13,4 @@
 | 009 | [Streaming offer extraction with a human in the loop](009-streaming-offer-extraction.md)                    | Accepted |
 | 010 | [AI cost protection: limits in Postgres, usage log, injection defence, evals](010-ai-cost-protection.md)    | Accepted |
 | 011 | [Match score computed in code, AI only comments (coach and roast)](011-match-score-in-code.md)              | Accepted |
+| 012 | [Testing strategy: what each layer proves](012-testing-strategy.md)                                         | Accepted |

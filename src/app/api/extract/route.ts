@@ -3,6 +3,7 @@ import { after, connection } from "next/server";
 
 import { extractRequestSchema } from "@/features/extract/schemas";
 import { streamOfferExtraction } from "@/features/extract/server/stream-extraction";
+import { aiLimits } from "@/lib/ai/limits";
 import { AiNotConfiguredError, getModel, modelLabel } from "@/lib/ai/model";
 import { settleWithin, textError } from "@/lib/ai/http";
 import { classifyProviderError, providerErrorMessage } from "@/lib/ai/provider-error";
@@ -13,13 +14,13 @@ import { reserveAiCallForSession } from "@/lib/db/queries/ai-usage";
 export const maxDuration = 30;
 
 /**
- * Which model answers: lets the e2e suite refuse to run against a dev server that talks to a
- * real, paid model (Playwright reuses a running `pnpm dev`).
+ * Which model answers and the guest limit: the e2e suite refuses to call a real, paid model
+ * (a reused `pnpm dev`, or a deployment) and sizes its limit tests to the server's setting.
  */
 export async function GET() {
   await connection(); // read the env at request time, not at build time (prerendering)
   return Response.json(
-    { mock: process.env.AI_PROVIDER === "mock" },
+    { mock: process.env.AI_PROVIDER === "mock", guestLimit: aiLimits().guestPerHour },
     { headers: { "Cache-Control": "no-store" } },
   );
 }

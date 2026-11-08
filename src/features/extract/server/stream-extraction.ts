@@ -6,6 +6,8 @@ import { EXTRACT_OFFER_INSTRUCTIONS, offerPrompt } from "@/lib/ai/prompts/extrac
 
 import { offerExtractionSchema } from "../schemas";
 
+const ignoreError = () => {};
+
 /**
  * The one way to ask a model for an OfferExtraction. The Route Handler streams it to the
  * browser; `pnpm eval` awaits the final object. Same prompt, schema and settings in both, so
@@ -15,10 +17,13 @@ export function streamOfferExtraction({
   model,
   offer,
   abortSignal,
+  onError = ignoreError,
 }: {
   model: LanguageModel;
   offer: string;
   abortSignal?: AbortSignal;
+  /** Errors also reach the caller through the stream and its promises; by default not logged twice. */
+  onError?: (error: unknown) => void;
 }) {
   return streamText({
     model,
@@ -28,5 +33,6 @@ export function streamOfferExtraction({
     maxOutputTokens: 1200,
     maxRetries: 1,
     abortSignal,
+    onError: ({ error }) => onError(error),
   });
 }

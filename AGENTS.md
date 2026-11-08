@@ -77,8 +77,14 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
   never by a model. Every write that can change it (card create/update, profile save, guest seed)
   stores the new score in the same transaction. AI comments explain the score; prompts must say
   not to compute or contradict it.
+- **Testing layers (ADR 012):** logic in `lib/` needs unit tests (90% threshold); client
+  components with state get Testing Library tests (fake streams with `src/test/stream.ts`);
+  anything touching Postgres, auth or Server Actions is tested in e2e, not with mocks.
+  Run `pnpm test:coverage` before saying a task is done.
 - **E2E never calls a real model:** Playwright starts the app with `AI_PROVIDER=mock`
-  (`src/lib/ai/demo-model.ts`). Add new scripted answers there, not network mocks.
+  (`src/lib/ai/demo-model.ts`). Add new scripted answers there, not network mocks. Every AI spec
+  calls `requireDemoModel()` first: it fails locally against a real model and skips against a
+  deployment that uses one.
 - **Filters and search state live in the URL** (nuqs), not in a global store (ADR 008). Parsers
   and the pure `filterApplications` live in `src/features/board/filters.ts`. A move made while
   filtering must map neighbours with `neighboursInFullColumn`.
