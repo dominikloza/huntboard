@@ -122,6 +122,12 @@ add every new shared component there, in both themes.
 - Icons: `@phosphor-icons/react` only (lint rule blocks lucide). Never emoji in the UI.
 - Motion must have a reason (feedback, state change, streaming). Use `animate-stamp` /
   `animate-pen`; everything respects `prefers-reduced-motion` (global rule in globals.css).
+- Scroll animations (landing page only, ADR 014): the `scroll-*` classes in `globals.css`, pure
+  CSS with `animation-timeline: view()`. The base style must be the final state (no-support and
+  reduced-motion fallback). Motion (`motion/react`) only in `src/features/landing`: a static
+  server version first, the animated one swapped in near the viewport (`deferred.tsx`),
+  `LazyMotion` with lazily loaded features, `MotionConfig reducedMotion="user"`.
+- `.band` is the only inverted section (ink background); inside it the pen uses `--band-pen`.
 - Every state is designed: loading (skeletons shaped like the content, no spinners), empty,
   error, disabled.
 

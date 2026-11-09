@@ -12,7 +12,8 @@ test.describe("authentication", () => {
 
   test("a guest gets a demo board and can sign out", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: "Wejdź jako gość" }).click();
+    // The landing page has the sign-in form twice (hero and the closing call to action).
+    await page.getByRole("button", { name: "Wejdź jako gość" }).first().click();
 
     await expect(page).toHaveURL(/\/board$/);
     await expect(page.getByRole("heading", { level: 1, name: "Kartoteka" })).toBeVisible();

@@ -21,6 +21,8 @@
   --primary-soft: #dce2fa; /* active folder tab */
   --pen: #c8261e; /* red pen: ONLY roast mode and errors */
   --pen-foreground: #ffffff;
+  /* the pen on an inverted band (ink background): the other theme's pen keeps AA */
+  --band-pen: #ff6b5e;
   --shadow-hard: 3px 3px 0 var(--ink);
   --shadow-sheet: 0 2px 0 #cdd0c8;
 }
@@ -40,6 +42,7 @@
   --primary-soft: #232b52;
   --pen: #ff6b5e;
   --pen-foreground: #16181b;
+  --band-pen: #c8261e;
   --shadow-hard: 3px 3px 0 #000000;
   --shadow-sheet: 0 2px 0 #0d0e10;
 }
@@ -154,5 +157,143 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+  }
+}
+
+/*
+ * Inverted band (landing page): ink background, paper text. The red pen inside it switches to the
+ * other theme's shade, so roast marks keep their contrast on the dark (or light) band.
+ */
+.band {
+  --pen: var(--band-pen);
+  background: var(--color-foreground);
+  color: var(--color-background);
+}
+
+/*
+ * Scroll-driven animations (landing page). Pure CSS: each element animates as it crosses the
+ * viewport (animation-timeline: view()). Browsers without support and anyone who prefers reduced
+ * motion get the final, static state: the base styles below are the end of every animation.
+ */
+.scroll-strike,
+.scroll-underline {
+  background: linear-gradient(var(--color-pen), var(--color-pen)) no-repeat;
+  text-decoration: none;
+}
+.scroll-strike {
+  background-position: 0 58%;
+  background-size: 100% 2.5px;
+}
+.scroll-underline {
+  background-position: 0 100%;
+  background-size: 100% 2.5px;
+}
+.scroll-circle {
+  outline: 2.5px solid var(--color-pen);
+  outline-offset: 3px;
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .scroll-rise,
+    .scroll-open,
+    .scroll-sheet,
+    .scroll-sheet-left,
+    .scroll-strike,
+    .scroll-underline,
+    .scroll-circle,
+    .scroll-note,
+    .scroll-row {
+      animation-timeline: view();
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+    }
+    /* a section rises into place */
+    .scroll-rise {
+      animation-name: scroll-rise;
+      animation-range: entry 0% cover 35%;
+    }
+    /* the folder with the board opens flat */
+    .scroll-open {
+      transform-origin: 50% 0;
+      animation-name: scroll-open;
+      animation-range: entry 0% cover 42%;
+    }
+    /* a sheet of paper lands on the desk */
+    .scroll-sheet {
+      animation-name: scroll-sheet;
+      animation-range: entry 0% cover 38%;
+    }
+    .scroll-sheet-left {
+      animation-name: scroll-sheet-left;
+      animation-range: entry 0% cover 38%;
+    }
+    /* the red pen marks the pasted offer */
+    .scroll-strike,
+    .scroll-underline {
+      animation-name: scroll-draw;
+      animation-range: entry 60% cover 45%;
+    }
+    .scroll-circle {
+      animation-name: scroll-ring;
+      animation-range: entry 60% cover 50%;
+    }
+    .scroll-note {
+      animation-name: scroll-note;
+      animation-range: entry 70% cover 50%;
+    }
+    /* register rows are written in one by one */
+    .scroll-row {
+      animation-name: scroll-rise;
+      animation-range: entry 0% entry 100%;
+    }
+  }
+}
+
+@keyframes scroll-rise {
+  from {
+    opacity: 0;
+    translate: 0 48px;
+  }
+}
+@keyframes scroll-open {
+  from {
+    opacity: 0.4;
+    transform: perspective(1600px) rotateX(22deg) scale(0.92);
+  }
+}
+@keyframes scroll-sheet {
+  from {
+    opacity: 0;
+    transform: translate(40px, 90px) rotate(4deg);
+  }
+  to {
+    transform: rotate(-0.6deg);
+  }
+}
+@keyframes scroll-sheet-left {
+  from {
+    opacity: 0;
+    transform: translate(-40px, 90px) rotate(-4deg);
+  }
+  to {
+    transform: rotate(0.8deg);
+  }
+}
+@keyframes scroll-draw {
+  from {
+    background-size: 0% 2.5px;
+  }
+}
+@keyframes scroll-ring {
+  from {
+    outline-color: transparent;
+  }
+}
+@keyframes scroll-note {
+  from {
+    opacity: 0;
+    transform: translateY(10px) rotate(-6deg);
   }
 }
