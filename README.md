@@ -4,11 +4,13 @@
 and scores it against your profile, you move it through the process on a board. Roast mode lets
 an AI recruiter go over the offer with a red pen.
 
-> Status: **Day 8 of 10**. Sign-in (GitHub or guest), a live board with accessible drag & drop and
+> Status: **Day 9 of 10**. Sign-in (GitHub or guest), a live board with accessible drag & drop and
 > optimistic saves, search and filters in the URL, notes, AI intake (paste an offer, watch the
 > form fill in, correct, save), a profile with a match score on every card, and AI comments on the
 > match in two tones: a calm coach or a sarcastic recruiter with a red pen. Tested in four
-> layers (unit, component, e2e after every deployment, AI evals). Next: polish.
+> layers (unit, component, e2e after every deployment, AI evals). Polished: a landing page built
+> from real screenshots, a daily cleanup of stale guest accounts, Lighthouse 90+ on mobile.
+> Next: the case study.
 
 ## Why this project
 
