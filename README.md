@@ -17,7 +17,9 @@ A job search is a spreadsheet nobody likes: offers copied by hand, salary ranges
 formats, no idea which application is where. Huntboard keeps every application as a folder on a
 board. You paste the offer, AI fills in the card while you watch (company, role, level, salary,
 stack, red flags), you correct it and save. A score computed from your profile says how well it
-fits, and an AI comment explains why, calmly or with a red pen.
+fits, and an AI comment explains why, calmly or with a red pen. Before the interview, the card
+prepares flashcards with questions about the offer's stack, weighted towards what your profile is
+missing.
 
 I built it for my own search and to show the frontend problems I care about: optimistic UI that
 survives failures, streaming structured AI output into a real form, and accessibility that is
@@ -92,6 +94,9 @@ without a click ([ADR 009](docs/adr/009-streaming-offer-extraction.md)).
 - **The match score is code, not a model** ([ADR 011](docs/adr/011-match-score-in-code.md)):
   stack 55%, salary 20%, work mode 15%, level 10%, unit-tested and stored on every card. The AI
   explains the number and is checked for never making up its own.
+- **Interview prep** ([ADR 015](docs/adr/015-interview-questions.md)): 6 flashcards about the
+  offer's stack (at least two about the skills your profile is missing) and 2 questions to ask
+  the employer, same pipeline, limits and saving as the comments.
 - **Evals** (`pnpm eval`): 12 realistic offers (B2B and UoP, hourly and daily rates, EUR, English, an injection attempt) and 8 coach/roast comments, every check a rule in
   code (no LLM judge). Latest run on Gemini 3.5 Flash Lite: **99% (127/128)**,
   [report](evals/report.md).
@@ -156,7 +161,7 @@ flowchart LR
 
 ## Decisions and trade-offs
 
-14 ADRs in [`docs/adr`](docs/adr/README.md). The ones that shaped the project:
+15 ADRs in [`docs/adr`](docs/adr/README.md). The ones that shaped the project:
 
 | Decision                                                                       | Trade-off                                                                        |
 | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
@@ -220,7 +225,7 @@ No GitHub app or AI key yet? "Wejdź jako gość" works with the database alone,
 - **Real-time for shared boards**: today two tabs resolve conflicts by version; five people
   editing at once would need presence and a CRDT or a service like Liveblocks.
 - **Funnel statistics**: how many applications reach each stage and how long replies take.
-- **Interview prep** from the stack in an offer (flashcards), reusing the extraction schema.
+- **Practice mode for the flashcards**: mark what you knew, repeat the rest before the interview.
 - **An LLM judge for tone only**, next to the rule-based evals, run before a prompt change.
 
 ## Working with AI agents

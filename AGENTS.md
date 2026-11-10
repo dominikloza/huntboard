@@ -73,7 +73,8 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
   before the model call, `refund()` if the provider fails before answering, `record(usage)` in
   `after()`. Never call a model from a Route Handler without it.
 - **Evals:** prompt or model changes must be followed by `pnpm eval` (real model, writes
-  `evals/report.md`); add a case to `evals/extract/` for every bug the model makes.
+  `evals/report.md`; suites `extract`, `match`, `questions`); add a case to `evals/extract/` for
+  every bug the model makes. A new AI feature gets its own suite with rule-based checks.
 - **Match score (ADR 011):** computed only by `scoreMatch` (`src/features/match/lib/score.ts`),
   never by a model. Every write that can change it (card create/update, profile save, guest seed)
   stores the new score in the same transaction. AI comments explain the score; prompts must say

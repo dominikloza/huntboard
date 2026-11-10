@@ -10,6 +10,7 @@ import { PenNote } from "@/components/paper/pen";
 import { Button } from "@/components/ui/button";
 import { MatchBadge } from "@/features/board/components/match-badge";
 import { formatDateTime } from "@/lib/format";
+import { aiFetch } from "@/lib/ai/client-fetch";
 import { cn } from "@/lib/utils";
 
 import { type MatchBreakdown } from "../lib/score";
@@ -34,16 +35,6 @@ const ACTION: Record<MatchTone, { first: string; again: string; busy: string }> 
 
 const points = (score: number, weight: number) => Math.round(score * weight * 100);
 
-/** Network failures get a Polish message; our API answers with Polish plain text already. */
-const commentFetch: typeof fetch = async (input, init) => {
-  try {
-    return await fetch(input, init);
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") throw error;
-    throw new Error("Brak połączenia z serwerem. Sprawdź internet i spróbuj ponownie.");
-  }
-};
-
 /**
  * Match score of one card (ADR 011): the computed breakdown, then an AI comment in one of two
  * tones. The score never comes from the AI; the comment is saved with the card.
@@ -67,7 +58,7 @@ export function MatchPanel({
   const comment = useObject({
     api: "/api/match",
     schema: matchCommentSchema,
-    fetch: commentFetch,
+    fetch: aiFetch,
     onFinish: ({ object }) => {
       const finished = streamToneRef.current;
       if (object && finished) {

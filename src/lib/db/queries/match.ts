@@ -27,6 +27,19 @@ export type MatchContext = {
   save: (tone: MatchTone, comment: StoredMatchComment) => Promise<void>;
 };
 
+/** The offer fields every AI feature reads (match comments, interview questions). */
+export const OFFER_COLUMNS = {
+  company: applications.company,
+  role: applications.role,
+  seniority: applications.seniority,
+  workMode: applications.workMode,
+  city: applications.city,
+  salaryMin: applications.salaryMin,
+  salaryMax: applications.salaryMax,
+  stack: applications.stack,
+  rawOffer: applications.rawOffer,
+};
+
 /** Everything an AI comment needs about one card. Null for unknown or foreign cards. */
 export async function getMatchContextForSession(
   applicationId: string,
@@ -35,21 +48,7 @@ export async function getMatchContextForSession(
   const db = getDb();
   const own = and(eq(applications.id, applicationId), eq(applications.userId, user.id));
   const [[offer], profile] = await Promise.all([
-    db
-      .select({
-        company: applications.company,
-        role: applications.role,
-        seniority: applications.seniority,
-        workMode: applications.workMode,
-        city: applications.city,
-        salaryMin: applications.salaryMin,
-        salaryMax: applications.salaryMax,
-        stack: applications.stack,
-        rawOffer: applications.rawOffer,
-      })
-      .from(applications)
-      .where(own)
-      .limit(1),
+    db.select(OFFER_COLUMNS).from(applications).where(own).limit(1),
     profileOf(db, user.id),
   ]);
   if (!offer) return null;

@@ -41,7 +41,7 @@ export type MatchEvalCase = z.infer<typeof matchEvalCasesSchema>[number];
  * Technologies a comment might mention. A name from this list that is not in the offer, the
  * pasted text or the profile was invented by the model.
  */
-const KNOWN_TECH = [
+export const KNOWN_TECH = [
   "React",
   "React Native",
   "Next.js",
@@ -131,7 +131,16 @@ const KNOWN_TECH = [
  * Technology names that are also ordinary words in Polish or English ("jest" = "is", "go" = "it").
  * A rule cannot tell them apart without understanding the sentence, so they are not checked.
  */
-const AMBIGUOUS_TECH = new Set(["Jest", "Go", "Less", "Express", "Ember", "Astro", "Bun", "Solid"]);
+export const AMBIGUOUS_TECH = new Set([
+  "Jest",
+  "Go",
+  "Less",
+  "Express",
+  "Ember",
+  "Astro",
+  "Bun",
+  "Solid",
+]);
 
 /** Matched at the start of a word: "wiek" catches "wieku", not "człowiek". */
 const ROAST_FORBIDDEN = [
@@ -169,12 +178,12 @@ const ROAST_FORBIDDEN = [
 ];
 
 /** Polish letters, or one of the most common Polish words (whole words, Unicode-aware). */
-const POLISH =
+export const POLISH =
   /[ąćęłńóśźż]|(^|[^\p{L}])(i|w|z|na|do|nie|się|jest|to|że|oraz|ale|tylko|dla|jak|po|masz)(?=$|[^\p{L}])/iu;
 
-const words = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
+export const words = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
 /** Whole-word mention. Short names ("Go", "Nx", "Bun") must match case: "dodaj go do CV" is Polish. */
-const mentions = (text: string, name: string) =>
+export const mentions = (text: string, name: string) =>
   new RegExp(
     `(^|[^\\p{L}\\d])${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}($|[^\\p{L}\\d])`,
     name.length <= 3 ? "u" : "iu",
@@ -189,6 +198,22 @@ function allowedNumbers(breakdown: MatchBreakdown): Set<number> {
     allowed.add(Math.round(part.score * part.weight * 100));
   }
   return allowed;
+}
+
+/** Technologies from KNOWN_TECH that `text` names but neither the offer nor the profile does. */
+export function inventedTech(
+  text: string,
+  testCase: Pick<MatchEvalCase, "offer" | "profile">,
+): string[] {
+  const known = [...testCase.offer.stack, ...testCase.profile.skills];
+  const source = `${testCase.offer.rawOffer ?? ""}\n${testCase.offer.role}`;
+  return KNOWN_TECH.filter(
+    (tech) =>
+      !AMBIGUOUS_TECH.has(tech) &&
+      mentions(text, tech) &&
+      !known.some((k) => sameTech(k, tech) || sameTech(tech, k)) &&
+      !mentions(source, tech),
+  );
 }
 
 export function scoreComment(
@@ -239,15 +264,7 @@ export function scoreComment(
     `tylko ${breakdown.score}/100`,
   );
 
-  const known = [...testCase.offer.stack, ...testCase.profile.skills];
-  const source = `${testCase.offer.rawOffer ?? ""}\n${testCase.offer.role}`;
-  const invented = KNOWN_TECH.filter(
-    (tech) =>
-      !AMBIGUOUS_TECH.has(tech) &&
-      mentions(all, tech) &&
-      !known.some((k) => sameTech(k, tech) || sameTech(tech, k)) &&
-      !mentions(source, tech),
-  );
+  const invented = inventedTech(all, testCase);
   add(
     "inventedTech",
     invented.length === 0,

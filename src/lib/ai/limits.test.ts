@@ -79,4 +79,14 @@ describe("quotaMessage", () => {
     );
     expect(message).toContain("za 5 godz.");
   });
+
+  it("offers the manual form only where there is one", () => {
+    const blocked = { ok: false, reason: "user", limit: 30, retryAfterSeconds: 600 } as const;
+    expect(quotaMessage(blocked, "questions", false)).toBe(
+      "Limit: 30 zestawów pytań na godzinę. Następne za 10 min.",
+    );
+    const budget = { ...blocked, reason: "budget" } as const;
+    expect(quotaMessage(budget, "roast", false)).not.toContain("ręcznie");
+    expect(quotaMessage(budget, "extract", false)).toContain("ręcznie");
+  });
 });

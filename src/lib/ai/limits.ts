@@ -75,6 +75,7 @@ const KIND_LABEL: Record<AiUsageKind, string> = {
   extract: "wypełnień z AI",
   match: "ocen dopasowania",
   roast: "roastów",
+  questions: "zestawów pytań",
 };
 
 /** "Następne za 23 min." in Polish, rounded up so it never says "0 min". */
@@ -86,8 +87,12 @@ export function quotaMessage(
   const minutes = Math.ceil(decision.retryAfterSeconds / 60);
   const wait = minutes >= 90 ? `${Math.ceil(minutes / 60)} godz.` : `${minutes} min`;
   if (decision.reason === "budget") {
-    return `AI ma na dziś wyczerpany limit dla wszystkich użytkowników. Spróbuj za ${wait} albo wpisz dane ręcznie.`;
+    return kind === "extract"
+      ? `AI ma na dziś wyczerpany limit dla wszystkich użytkowników. Spróbuj za ${wait} albo wpisz dane ręcznie.`
+      : `AI ma na dziś wyczerpany limit dla wszystkich użytkowników. Spróbuj za ${wait}.`;
   }
   const who = isGuest ? " na koncie gościa (zaloguj się przez GitHub, żeby mieć więcej)" : "";
-  return `Limit: ${decision.limit} ${KIND_LABEL[kind]} na godzinę${who}. Następne za ${wait}. Możesz też wpisać dane ręcznie.`;
+  // Only the offer form has a manual way around the AI.
+  const manual = kind === "extract" ? " Możesz też wpisać dane ręcznie." : "";
+  return `Limit: ${decision.limit} ${KIND_LABEL[kind]} na godzinę${who}. Następne za ${wait}.${manual}`;
 }

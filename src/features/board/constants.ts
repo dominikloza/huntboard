@@ -19,7 +19,7 @@ export type WorkMode = (typeof WORK_MODES)[number];
 export const REMOTE_PREFERENCES = ["remote", "hybrid", "office", "any"] as const;
 export type RemotePreference = (typeof REMOTE_PREFERENCES)[number];
 
-export const AI_USAGE_KINDS = ["extract", "match", "roast"] as const;
+export const AI_USAGE_KINDS = ["extract", "match", "roast", "questions"] as const;
 export type AiUsageKind = (typeof AI_USAGE_KINDS)[number];
 
 /** Pasted job offer text: long enough to extract from, short enough to keep AI cost bounded. */

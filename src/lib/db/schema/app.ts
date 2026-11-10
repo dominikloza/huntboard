@@ -20,6 +20,7 @@ import {
   WORK_MODES,
 } from "@/features/board/constants";
 
+import { type StoredInterviewQuestions } from "@/features/interview/schemas";
 import { type StoredMatchComment } from "@/features/match/schemas";
 
 import { user } from "./auth";
@@ -94,6 +95,8 @@ export const applications = pgTable(
     /** Last AI comments on the match, one per tone. */
     matchComment: jsonb("match_comment").$type<StoredMatchComment>(),
     roastComment: jsonb("roast_comment").$type<StoredMatchComment>(),
+    /** Last AI interview prep for this offer (flashcards + questions for the employer). */
+    interviewQuestions: jsonb("interview_questions").$type<StoredInterviewQuestions>(),
     /** Optimistic concurrency: bumped on every change; a move must name the version it saw. */
     version: integer("version").notNull().default(1),
     ...timestamps,

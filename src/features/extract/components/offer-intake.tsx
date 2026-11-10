@@ -7,6 +7,7 @@ import { type FormEvent, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Textarea } from "@/components/ui/textarea";
+import { aiFetch } from "@/lib/ai/client-fetch";
 import {
   ApplicationForm,
   EMPTY_APPLICATION_FORM,
@@ -39,19 +40,6 @@ const STATUS_COPY: Record<Exclude<Outcome, "manual">, string> = {
 const numberFormat = new Intl.NumberFormat("pl-PL");
 
 /**
- * useObject shows a failed response's body as the error. Our Route Handler answers with
- * Polish plain text; a network failure gets its own message instead of "Failed to fetch".
- */
-const extractFetch: typeof fetch = async (input, init) => {
-  try {
-    return await fetch(input, init);
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") throw error;
-    throw new Error("Brak połączenia z serwerem. Sprawdź internet i spróbuj ponownie.");
-  }
-};
-
-/**
  * "New offer" with AI (ADR 009): paste the offer, watch the fields fill in, correct them,
  * save. The AI never saves anything by itself (human in the loop).
  */
@@ -67,7 +55,7 @@ export function OfferIntake({ onDone }: { onDone: () => void }) {
   const extraction = useObject({
     api: "/api/extract",
     schema: offerExtractionSchema,
-    fetch: extractFetch,
+    fetch: aiFetch,
     onFinish: ({ object, error }) => {
       if (error) setOutcome("incomplete");
       else setOutcome(looksEmpty(object) ? "empty" : "done");

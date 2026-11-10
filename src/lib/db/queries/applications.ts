@@ -55,7 +55,7 @@ export async function getBoardApplications(): Promise<Application[]> {
 /** One card for the details page/modal. 404 for invalid ids and for other users' cards. */
 /** The sheet shows more than the board card: the AI's warnings about the offer. */
 export type ApplicationDetails = Application &
-  Pick<ApplicationRow, "redFlags" | "matchComment" | "roastComment">;
+  Pick<ApplicationRow, "redFlags" | "matchComment" | "roastComment" | "interviewQuestions">;
 
 export async function getApplicationOr404(id: string): Promise<ApplicationDetails> {
   const user = await requireUser();
@@ -67,6 +67,7 @@ export async function getApplicationOr404(id: string): Promise<ApplicationDetail
       redFlags: applications.redFlags,
       matchComment: applications.matchComment,
       roastComment: applications.roastComment,
+      interviewQuestions: applications.interviewQuestions,
     })
     .from(applications)
     .where(and(eq(applications.id, id), eq(applications.userId, user.id)))
