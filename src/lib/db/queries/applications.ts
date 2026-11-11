@@ -17,7 +17,7 @@ import { requireSessionUser, requireUser } from "@/lib/auth/session";
 
 import { getDb, type Database } from "../client";
 import { profileOf } from "./profile";
-import { applications, type ApplicationRow } from "../schema";
+import { applicationEvents, applications, type ApplicationRow } from "../schema";
 
 /*
  * Data Access Layer for applications. Every exported function resolves the user from the
@@ -94,6 +94,7 @@ export async function createApplicationForSession(input: ApplicationInput): Prom
       .values({ ...input, userId: user.id, position, matchScore })
       .returning(columns);
     if (!row) throw new Error("Insert returned no row");
+    await recordStage(tx, row, user.id);
     return row;
   });
 }
@@ -130,6 +131,7 @@ export async function updateApplicationForSession(
       })
       .where(and(eq(applications.id, id), eq(applications.userId, user.id)))
       .returning(columns);
+    if (row && row.status !== current.status) await recordStage(tx, row, user.id);
     return row ?? null;
   });
 }
@@ -146,7 +148,7 @@ export async function moveApplicationForSession(move: MoveInput): Promise<MoveRe
   const user = await requireSessionUser();
   return getDb().transaction(async (tx) => {
     const [card] = await tx
-      .select({ id: applications.id, version: applications.version })
+      .select({ id: applications.id, version: applications.version, status: applications.status })
       .from(applications)
       .where(and(eq(applications.id, move.id), eq(applications.userId, user.id)))
       .for("update");
@@ -199,6 +201,7 @@ export async function moveApplicationForSession(move: MoveInput): Promise<MoveRe
       })
       .where(and(eq(applications.id, move.id), eq(applications.userId, user.id)))
       .returning(columns);
+    if (row && row.status !== card.status) await recordStage(tx, row, user.id);
     return row ? { ok: true, card: row } : { ok: false, reason: "not-found" };
   });
 }
@@ -216,6 +219,13 @@ export async function deleteApplicationForSession(id: string): Promise<boolean> 
 // ---------------------------------------------------------------- helpers (not exported)
 
 type Tx = Parameters<Parameters<Database["transaction"]>[0]>[0];
+
+/** Stage history for the statistics: the card has just entered `card.status`. */
+async function recordStage(tx: Tx, card: Pick<Application, "id" | "status">, userId: string) {
+  await tx
+    .insert(applicationEvents)
+    .values({ applicationId: card.id, userId, status: card.status });
+}
 
 async function listByUser(db: Database, userId: string): Promise<Application[]> {
   return db

@@ -2,10 +2,14 @@ import "server-only";
 
 import { eq } from "drizzle-orm";
 
-import { buildGuestApplications, GUEST_PROFILE } from "@/features/board/lib/guest-workspace";
+import {
+  buildGuestApplications,
+  buildGuestHistory,
+  GUEST_PROFILE,
+} from "@/features/board/lib/guest-workspace";
 
 import { type Database } from "../client";
-import { aiUsage, applications, notes, profiles } from "../schema";
+import { aiUsage, applicationEvents, applications, notes, profiles } from "../schema";
 
 /*
  * Workspace lifecycle, called only from Better Auth hooks (src/lib/auth/server.ts).
@@ -19,7 +23,13 @@ export async function seedGuestWorkspace(db: Database, userId: string) {
       .insert(profiles)
       .values({ userId, ...GUEST_PROFILE })
       .onConflictDoNothing();
-    await tx.insert(applications).values(buildGuestApplications(userId));
+    const now = new Date();
+    const cards = await tx
+      .insert(applications)
+      .values(buildGuestApplications(userId, now))
+      .returning({ id: applications.id, company: applications.company });
+    const history = buildGuestHistory(cards, userId, now);
+    if (history.length > 0) await tx.insert(applicationEvents).values(history);
   });
 }
 
@@ -34,6 +44,10 @@ export async function moveWorkspace(db: Database, fromUserId: string, toUserId: 
       .set({ userId: toUserId })
       .where(eq(applications.userId, fromUserId));
     await tx.update(notes).set({ userId: toUserId }).where(eq(notes.userId, fromUserId));
+    await tx
+      .update(applicationEvents)
+      .set({ userId: toUserId })
+      .where(eq(applicationEvents.userId, fromUserId));
     await tx.update(aiUsage).set({ userId: toUserId }).where(eq(aiUsage.userId, fromUserId));
 
     const existing = await tx.query.profiles.findFirst({ where: eq(profiles.userId, toUserId) });

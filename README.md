@@ -19,7 +19,8 @@ board. You paste the offer, AI fills in the card while you watch (company, role,
 stack, red flags), you correct it and save. A score computed from your profile says how well it
 fits, and an AI comment explains why, calmly or with a red pen. Before the interview, the card
 prepares flashcards with questions about the offer's stack, weighted towards what your profile is
-missing.
+missing. A statistics page shows the funnel, how long companies take to answer and which
+applications are waiting too long.
 
 I built it for my own search and to show the frontend problems I care about: optimistic UI that
 survives failures, streaming structured AI output into a real form, and accessibility that is
@@ -97,6 +98,9 @@ without a click ([ADR 009](docs/adr/009-streaming-offer-extraction.md)).
 - **Interview prep** ([ADR 015](docs/adr/015-interview-questions.md)): 6 flashcards about the
   offer's stack (at least two about the skills your profile is missing) and 2 questions to ask
   the employer, same pipeline, limits and saving as the comments.
+- **Funnel statistics** ([ADR 016](docs/adr/016-stage-history-and-stats.md)): a stage history
+  written with every move, a pure `computeStats` (funnel, median answer time, applications
+  waiting 14+ days, weekly activity) and server-rendered HTML charts with no client JS.
 - **Evals** (`pnpm eval`): 12 realistic offers (B2B and UoP, hourly and daily rates, EUR, English, an injection attempt) and 8 coach/roast comments, every check a rule in
   code (no LLM judge). Latest run on Gemini 3.5 Flash Lite: **99% (127/128)**,
   [report](evals/report.md).
@@ -161,7 +165,7 @@ flowchart LR
 
 ## Decisions and trade-offs
 
-15 ADRs in [`docs/adr`](docs/adr/README.md). The ones that shaped the project:
+16 ADRs in [`docs/adr`](docs/adr/README.md). The ones that shaped the project:
 
 | Decision                                                                       | Trade-off                                                                        |
 | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
@@ -224,7 +228,6 @@ No GitHub app or AI key yet? "Wejdź jako gość" works with the database alone,
 
 - **Real-time for shared boards**: today two tabs resolve conflicts by version; five people
   editing at once would need presence and a CRDT or a service like Liveblocks.
-- **Funnel statistics**: how many applications reach each stage and how long replies take.
 - **Practice mode for the flashcards**: mark what you knew, repeat the rest before the interview.
 - **An LLM judge for tone only**, next to the rule-based evals, run before a prompt change.
 

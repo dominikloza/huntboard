@@ -53,7 +53,9 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
   The only exception is the guest cleanup cron (ADR 013), a system job guarded by `CRON_SECRET`.
 - **Session reads go behind `<Suspense>`** (Cache Components). Use `getCurrentUser()` /
   `requireUser()` from `src/lib/auth/session.ts`; never read cookies in a layout's top level.
-- Never edit `src/lib/db/schema/auth.ts` or `drizzle/*.sql` by hand; regenerate them.
+- Never edit `src/lib/db/schema/auth.ts` or `drizzle/*.sql` by hand; regenerate them. The
+  exception is a data migration: create it empty with `pnpm exec drizzle-kit generate --custom
+--name <what>` and write its SQL (e.g. `drizzle/0007_backfill_application_events.sql`).
 - Forms that change auth state are Server Actions (work without JavaScript).
 - **Board data (ADR 006):** reads = server prefetch into TanStack Query + `GET /api/applications`;
   writes = Server Actions that validate with the shared Zod schema and **return**
@@ -87,6 +89,9 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
   (`src/lib/ai/demo-model.ts`). Add new scripted answers there, not network mocks. Every AI spec
   calls `requireDemoModel()` first: it fails locally against a real model and skips against a
   deployment that uses one.
+- **Stage history (ADR 016):** every write that changes a card's stage (create, form update,
+  drag & drop move, guest seed) also inserts an `application_events` row in the same transaction
+  (`recordStage`). Statistics come only from `computeStats` (`src/features/stats/lib/stats.ts`).
 - **Filters and search state live in the URL** (nuqs), not in a global store (ADR 008). Parsers
   and the pure `filterApplications` live in `src/features/board/filters.ts`. A move made while
   filtering must map neighbours with `neighboursInFullColumn`.

@@ -129,6 +129,28 @@ export const notes = pgTable(
   (t) => [index("notes_application_idx").on(t.applicationId)],
 );
 
+/**
+ * Stage history: one row every time a card enters a stage (created in it, dragged or edited into
+ * it). The statistics need it: a rejected card may have had an interview, and the time to an
+ * answer is the gap between "applied" and the next stage.
+ */
+export const applicationEvents = pgTable(
+  "application_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    applicationId: uuid("application_id")
+      .notNull()
+      .references(() => applications.id, { onDelete: "cascade" }),
+    /** Denormalised owner, so every query can filter by the session user directly. */
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    status: applicationStatus("status").notNull(),
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [index("application_events_user_created_idx").on(t.userId, t.createdAt)],
+);
+
 /** One row per AI call (reserved before the call, tokens filled in after): limits and cost. */
 export const aiUsage = pgTable(
   "ai_usage",
@@ -166,5 +188,6 @@ export const profilesRelations = relations(profiles, ({ one }) => ({
 
 export type ApplicationRow = typeof applications.$inferSelect;
 export type NewApplicationRow = typeof applications.$inferInsert;
+export type ApplicationEventRow = typeof applicationEvents.$inferSelect;
 export type ProfileRow = typeof profiles.$inferSelect;
 export type NewProfileRow = typeof profiles.$inferInsert;
