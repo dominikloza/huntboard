@@ -27,6 +27,9 @@ const SHOTS = {
   board: { width: 1600, height: 867 },
   intake: { width: 1080, height: 1115 },
   roast: { width: 1080, height: 930 },
+  mail: { width: 1600, height: 552 },
+  questions: { width: 1080, height: 972 },
+  stats: { width: 1600, height: 883 },
 } as const;
 
 /** Real screenshot, one file per theme. The hidden one is display: none: lazy, never fetched. */
@@ -90,6 +93,8 @@ function GiantNumber({ n, className }: { n: string; className?: string }) {
 }
 
 const REGISTER = [
+  ["Poczta", "Skrypt działa w Twoim Gmailu: Huntboard nie dostaje dostępu do konta Google."],
+  ["Linki do ofert", "Pobierane tylko z listy portali, każde przekierowanie sprawdzane."],
   ["Przeciąganie", "Myszą, palcem i klawiaturą, z komunikatami po polsku dla czytnika ekranu."],
   ["Filtry", "Zapisane w adresie strony: link do widoku działa u kogoś innego."],
   ["Notatki", "Przy każdej teczce, widoczne od razu, zanim serwer odpowie."],
@@ -97,6 +102,43 @@ const REGISTER = [
   ["Limity AI", "10 wywołań na godzinę dla gościa i dzienny budżet, liczone w Postgresie."],
   ["Testy", "Jednostkowe, komponentowe, e2e po każdym deployu i ewaluacje odpowiedzi AI."],
 ] as const;
+
+/**
+ * Wide screenshots stay readable on a phone: below `sm` they keep 720px and scroll sideways
+ * inside their own labelled region (the page itself never scrolls sideways).
+ */
+function WideShot({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div
+      tabIndex={0}
+      role="region"
+      aria-label={label}
+      className="max-sm:overflow-x-auto max-sm:overscroll-x-contain"
+    >
+      <div className="max-sm:w-[720px]">{children}</div>
+    </div>
+  );
+}
+
+/** Small print under a step: term and value, the way the records office writes it. */
+function Facts({
+  items,
+  className,
+}: {
+  items: readonly (readonly [string, string])[];
+  className?: string;
+}) {
+  return (
+    <dl className={cn("border-t border-border text-sm", className)}>
+      {items.map(([term, value]) => (
+        <div key={term} className="grid grid-cols-[6rem_1fr] gap-3 border-b border-border py-2.5">
+          <dt className="font-semibold">{term}</dt>
+          <dd className="text-muted-foreground">{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
 export default function HomePage() {
   return (
@@ -133,8 +175,8 @@ export default function HomePage() {
             </div>
             <div className="flex flex-col gap-4 self-end max-sm:mt-6 lg:col-span-3 lg:pb-1.5">
               <p className="text-lg text-muted-foreground">
-                Wklejasz ofertę, AI ją rozpisuje, Ty decydujesz. Każda aplikacja ma swoją teczkę,
-                wynik dopasowania i notatki.
+                Aplikujesz, a teczka zakłada się sama z maila. AI rozpisuje ofertę i przygotowuje
+                Cię do rozmowy, Ty decydujesz.
               </p>
               <SignInButtons />
               <p className="-mt-4 text-sm text-muted-foreground">
@@ -188,7 +230,7 @@ export default function HomePage() {
         {/* 3. Step 01: sticky text, the filled-in form lands on the desk */}
         <section
           aria-labelledby="flow-title"
-          className="mx-auto max-w-[1400px] border-t-2 border-ink px-4 pt-5 pb-24 [contain-intrinsic-size:auto_1200px] [content-visibility:auto] sm:px-7 sm:pb-32"
+          className="mx-auto max-w-[1400px] border-t-2 border-ink px-4 pt-5 pb-24 [contain-intrinsic-size:auto_2400px] [content-visibility:auto] sm:px-7 sm:pb-32"
         >
           <h2
             id="flow-title"
@@ -196,34 +238,64 @@ export default function HomePage() {
           >
             Jak oferta przechodzi przez biurko
           </h2>
+          {/* Step 01: the inbox does the typing. A wide feed under the heading row. */}
+          <div className="mb-28 sm:mb-36">
+            <div className="mb-10 grid items-end gap-y-6 lg:grid-cols-12 lg:gap-x-6">
+              <GiantNumber n="01" className="text-primary-ink lg:col-span-2" />
+              <h3 className="font-display text-4xl leading-[1.05] font-extrabold tracking-[-0.03em] lg:col-span-6">
+                Aplikujesz. Teczka zakłada się sama.
+              </h3>
+              <p className="text-muted-foreground lg:col-span-4">
+                Mały skrypt w Twoim Gmailu przekazuje maile z rekrutacji. Potwierdzenie z
+                JustJoin.it, No Fluff Jobs czy eRecruitera zakłada teczkę, odpowiedź firmy ją
+                przesuwa, a cisza przez 30 dni odkłada do odrzuconych.
+              </p>
+            </div>
+            <figure className="scroll-sheet">
+              <figcaption>
+                <Tab>Z poczty</Tab>
+              </figcaption>
+              <WideShot label="Zrzut sekcji Z poczty, przewijany w poziomie na telefonie">
+                <Shot
+                  name="mail"
+                  alt="Sekcja Z poczty nad tablicą: nowe teczki z potwierdzeń JustJoin.it, No Fluff Jobs i eRecruitera, odmowa przesuwa Frontend Engineer do Odrzucone, zaproszenie przesuwa Mid Frontend Developer do Rozmowy, oferta przesuwa kartę do Oferty. Przy każdej zmianie przycisk Cofnij."
+                  sizes="(min-width: 1400px) 1340px, (min-width: 640px) 100vw, 720px"
+                  className="border-[1.5px] border-ink shadow-sheet"
+                />
+              </WideShot>
+            </figure>
+            <Facts
+              className="mt-8 grid sm:grid-cols-3 sm:gap-x-6 [&>div]:sm:border-b-0"
+              items={[
+                ["Treść", "maili nie zapisuję, tylko wynik"],
+                ["Kontrola", "każdą zmianę cofniesz jednym kliknięciem"],
+                ["Pewność", "niepewne odczyty czekają na Twoje zatwierdzenie"],
+              ]}
+            />
+          </div>
+
           <div className="grid gap-y-8 lg:grid-cols-12 lg:gap-x-6">
             <div className="lg:col-span-2">
-              <GiantNumber n="01" className="text-primary-ink lg:sticky lg:top-24" />
+              <GiantNumber n="02" className="text-primary-ink lg:sticky lg:top-24" />
             </div>
             <div className="lg:col-span-4">
               <div className="lg:sticky lg:top-24">
-                <h3 className="font-display text-4xl leading-[1.05] font-extrabold tracking-[-0.03em]">
-                  Wklejasz ogłoszenie. Pola wypełniają się same.
+                <h3 className="font-display text-4xl leading-[1.05] font-extrabold tracking-[-0.03em] text-balance">
+                  Link albo ogłoszenie. Pola wypełniają się same.
                 </h3>
                 <p className="mt-4 text-muted-foreground">
-                  AI czyta tekst z JustJoin.it czy LinkedIna i na żywo wpisuje firmę, stanowisko,
-                  widełki, tryb pracy i stack. Wyłapuje też to, na co warto uważać.
+                  Teczka z maila zna tylko firmę i stanowisko, ale pamięta link do oferty. Jedno
+                  kliknięcie i AI czyta ogłoszenie: wpisuje widełki, tryb pracy i stack, wyłapuje,
+                  na co uważać. Z LinkedIna wklejasz tekst.
                 </p>
-                <dl className="mt-7 border-t border-border text-sm">
-                  {[
+                <Facts
+                  className="mt-7"
+                  items={[
                     ["Szkic", "nic się nie zapisze bez Twojego kliknięcia"],
-                    ["Limit", "10 wywołań AI na godzinę dla gościa"],
-                    ["Jakość", "sprawdzana regułami na 12 ogłoszeniach testowych"],
-                  ].map(([term, value]) => (
-                    <div
-                      key={term}
-                      className="grid grid-cols-[6rem_1fr] gap-3 border-b border-border py-2.5"
-                    >
-                      <dt className="font-semibold">{term}</dt>
-                      <dd className="text-muted-foreground">{value}</dd>
-                    </div>
-                  ))}
-                </dl>
+                    ["Uzupełnia", "tylko puste pola, Twoje zostają"],
+                    ["Jakość", "sprawdzana regułami na 14 ogłoszeniach testowych"],
+                  ]}
+                />
               </div>
             </div>
             <figure className="scroll-sheet lg:col-span-5 lg:col-start-8 lg:pt-28">
@@ -240,14 +312,14 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 4. Step 02: inverted band, the red pen goes over a pasted offer (roast mode) */}
+        {/* 4. Step 03: inverted band, the red pen goes over a pasted offer (roast mode) */}
         <section
           aria-labelledby="score-title"
           className="band py-24 [contain-intrinsic-size:auto_1200px] [content-visibility:auto] sm:py-32"
         >
           <div className="mx-auto max-w-[1400px] px-4 sm:px-7">
             <div className="mb-16 grid items-end gap-y-6 lg:mb-18 lg:grid-cols-12 lg:gap-x-6">
-              <GiantNumber n="02" className="lg:col-span-2" />
+              <GiantNumber n="03" className="lg:col-span-2" />
               <h3
                 id="score-title"
                 className="font-display text-[40px] leading-none font-extrabold tracking-[-0.035em] sm:text-[52px] lg:col-span-8"
@@ -313,22 +385,87 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 5. Step 03: the register of what works underneath */}
+        {/* 5. Step 04: interview prep. The sheet on the left this time, the text beside it. */}
+        <section
+          aria-labelledby="prep-title"
+          className="mx-auto max-w-[1400px] px-4 pt-24 [contain-intrinsic-size:auto_1200px] [content-visibility:auto] sm:px-7 sm:pt-32"
+        >
+          <div className="grid gap-y-10 lg:grid-cols-12 lg:gap-x-6">
+            <figure className="scroll-sheet-left order-2 lg:order-1 lg:col-span-6">
+              <figcaption>
+                <Tab>Teczka: Kropla Software, etap Rozmowa</Tab>
+              </figcaption>
+              <div className="border-[1.5px] border-ink bg-card p-4 shadow-sheet sm:p-6">
+                <Shot
+                  name="questions"
+                  alt="Fiszki przed rozmową: pytania o React, TypeScript, Next.js i Playwright z tej oferty. Pod rozwiniętym pytaniem o TypeScript podpowiedź, co powinno paść w odpowiedzi."
+                  sizes="(min-width: 1024px) 640px, 100vw"
+                />
+              </div>
+            </figure>
+            <div className="order-1 lg:order-2 lg:col-span-5 lg:col-start-8">
+              <div className="lg:sticky lg:top-24">
+                <GiantNumber n="04" className="mb-8 text-primary-ink" />
+                <h3
+                  id="prep-title"
+                  className="font-display text-4xl leading-[1.05] font-extrabold tracking-[-0.03em] text-balance"
+                >
+                  Zaproszenie przyszło. Fiszki już są.
+                </h3>
+                <p className="mt-4 text-muted-foreground">
+                  Sześć pytań pod stack tej oferty, najwięcej o tym, czego brakuje w Twoim profilu,
+                  i dwa pytania do zadania pracodawcy. Pod każdym schowana podpowiedź.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 6. Step 05: the funnel, in a folder like the board in the hero */}
+        <section
+          aria-labelledby="stats-title"
+          className="mx-auto max-w-[1400px] px-4 pt-28 [contain-intrinsic-size:auto_1200px] [content-visibility:auto] sm:px-7 sm:pt-36"
+        >
+          <div className="mb-10 grid items-end gap-y-6 lg:grid-cols-12 lg:gap-x-6">
+            <GiantNumber n="05" className="text-primary-ink lg:col-span-2" />
+            <h3
+              id="stats-title"
+              className="font-display text-4xl leading-[1.05] font-extrabold tracking-[-0.03em] lg:col-span-6"
+            >
+              Widzisz, gdzie odpadasz.
+            </h3>
+            <p className="text-muted-foreground lg:col-span-4">
+              Lejek od wysłanych do ofert, po ilu dniach firmy odpowiadają i komu warto się
+              przypomnieć. Liczone z historii każdej teczki, bez AI.
+            </p>
+          </div>
+          <figure className="scroll-open border-[1.5px] border-ink bg-folder p-3 shadow-sheet sm:p-4.5">
+            <WideShot label="Zrzut statystyk, przewijany w poziomie na telefonie">
+              <Shot
+                name="stats"
+                alt="Statystyki: 8 wysłanych z 10 teczek, 3 rozmowy, 1 oferta, odpowiedź średnio po 8 dniach. Lejek etapów i lista aplikacji czekających na odpowiedź ponad 14 dni."
+                sizes="(min-width: 1400px) 1340px, (min-width: 640px) 100vw, 720px"
+                className="border-[1.5px] border-ink"
+              />
+            </WideShot>
+          </figure>
+        </section>
+
+        {/* 7. The register of what works underneath */}
         <section
           aria-labelledby="register-title"
           className="mx-auto max-w-[1400px] px-4 py-24 [contain-intrinsic-size:auto_1200px] [content-visibility:auto] sm:px-7 sm:py-32"
         >
           <div className="mb-12 grid items-end gap-y-6 lg:grid-cols-12 lg:gap-x-6">
-            <GiantNumber n="03" className="text-primary-ink lg:col-span-2" />
             <h3
               id="register-title"
-              className="font-display text-[40px] leading-none font-extrabold tracking-[-0.035em] sm:text-[52px] lg:col-span-6"
+              className="font-display text-[40px] leading-none font-extrabold tracking-[-0.035em] sm:text-[52px] lg:col-span-8"
             >
               Prowadzisz teczkę do końca.
             </h3>
             <p className="text-muted-foreground lg:col-span-3 lg:col-start-10">
-              Od zapisanej oferty przez rozmowę do decyzji. Reszta to rejestr tego, co działa pod
-              spodem.
+              Od maila z potwierdzeniem przez rozmowę do decyzji. Reszta to rejestr tego, co działa
+              pod spodem.
             </p>
           </div>
           <ol className="border-t-2 border-ink">
@@ -349,7 +486,7 @@ export default function HomePage() {
           </ol>
         </section>
 
-        {/* 6. A fresh folder */}
+        {/* 8. A fresh folder */}
         <section
           aria-labelledby="cta-title"
           className="mx-auto max-w-[1400px] px-4 pb-24 [contain-intrinsic-size:auto_1200px] [content-visibility:auto] sm:px-7"

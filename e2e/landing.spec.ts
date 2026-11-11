@@ -23,8 +23,11 @@ test.describe("landing page", () => {
     await expect(page.getByRole("heading", { level: 1, name: /Kartoteka/ })).toBeVisible();
     for (const name of [
       "Jedna teczka, pięć przystanków.",
-      "Wklejasz ogłoszenie. Pola wypełniają się same.",
+      "Aplikujesz. Teczka zakłada się sama.",
+      "Link albo ogłoszenie. Pola wypełniają się same.",
       "Kod liczy wynik. AI go komentuje, czasem czerwonym długopisem.",
+      "Zaproszenie przyszło. Fiszki już są.",
+      "Widzisz, gdzie odpadasz.",
       "Prowadzisz teczkę do końca.",
     ]) {
       await expect(page.getByRole("heading", { name })).toBeAttached();
