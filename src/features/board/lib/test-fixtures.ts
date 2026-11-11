@@ -14,6 +14,7 @@ export function boardFixture(): Application[] {
       ...card,
       position: keys[i] ?? "a0",
       version: 1,
+      offerUrl: null,
     }));
   });
 }

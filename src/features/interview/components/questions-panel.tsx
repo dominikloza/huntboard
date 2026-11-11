@@ -92,7 +92,10 @@ export function QuestionsPanel({
           )}
         </div>
       ) : (
-        <p className="text-sm">Dodaj stack do tej teczki, a ułożę pytania pod te technologie.</p>
+        <p className="text-sm">
+          Ta teczka nie ma stacku. Uzupełnij ją z ogłoszenia (sekcja nad formularzem), a ułożę
+          pytania pod te technologie.
+        </p>
       )}
 
       <p role="status" className="sr-only">

@@ -106,6 +106,10 @@ without a click ([ADR 009](docs/adr/009-streaming-offer-extraction.md)).
   by rules, the rest by one AI call. Confirmations create cards, answers move them, unsure
   readings wait for approval, every change can be undone, and applications without an answer
   for 30 days move to rejected. The mail body is never stored.
+- **Fill a card from its offer** ([ADR 018](docs/adr/018-fill-card-from-offer.md)): the
+  confirmation's link to the offer is kept, and one click downloads the page (an allowlist of
+  job boards, redirects re-checked, schema.org `JobPosting` first) and fills only the card's
+  empty fields, so cards from e-mail get a stack, a score and interview prep.
 - **Evals** (`pnpm eval`): 12 realistic offers (B2B and UoP, hourly and daily rates, EUR, English, an injection attempt) and 8 coach/roast comments, every check a rule in
   code (no LLM judge). Latest run on Gemini 3.5 Flash Lite: **99% (127/128)**,
   [report](evals/report.md).

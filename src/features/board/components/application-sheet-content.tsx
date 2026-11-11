@@ -16,16 +16,20 @@ export async function ApplicationSheetContent({ id }: { id: string }) {
     getNotesForApplication(id),
     getProfile(),
   ]);
-  const { matchComment, roastComment, interviewQuestions, ...card } = application;
+  const { matchComment, roastComment, interviewQuestions, hasOffer, ...card } = application;
   return (
     <EditApplicationSheet
+      // A saved change bumps the version: the sheet starts again from the new values.
+      key={`${card.id}-${card.version}`}
       application={card}
+      hasOffer={hasOffer}
       header={
         <MatchPanel
           // A new comment from the server (reopening the card) replaces local state.
           key={`${matchComment?.createdAt}-${roastComment?.createdAt}`}
           applicationId={application.id}
           breakdown={scoreMatch(profile, application)}
+          hasStack={application.stack.length > 0}
           saved={{ coach: matchComment, roast: roastComment }}
         />
       }

@@ -19,3 +19,4 @@
 | 015 | [Interview questions generated from the offer](015-interview-questions.md)                                  | Accepted |
 | 016 | [Stage history and funnel statistics](016-stage-history-and-stats.md)                                       | Accepted |
 | 017 | [Mail sync through a Gmail Apps Script](017-mail-sync.md)                                                   | Accepted |
+| 018 | [Filling a card from its offer (link or text)](018-fill-card-from-offer.md)                                 | Accepted |

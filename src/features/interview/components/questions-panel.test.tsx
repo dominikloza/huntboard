@@ -91,6 +91,6 @@ describe("QuestionsPanel", () => {
   it("asks for a stack instead of offering an empty set", () => {
     setup({ hasStack: false });
     expect(screen.queryByRole("button", { name: "Przygotuj pytania" })).not.toBeInTheDocument();
-    expect(screen.getByText(/Dodaj stack do tej teczki/)).toBeInTheDocument();
+    expect(screen.getByText(/Uzupełnij ją z ogłoszenia/)).toBeInTheDocument();
   });
 });

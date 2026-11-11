@@ -99,6 +99,10 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
   (`src/features/mail/lib/decide.ts`, pure, tested). Known senders are rules in
   `known-senders.ts`; add a case to `evals/mail/cases.json` for every misread e-mail. Never
   store an e-mail body, and every automatic change must be undoable from the feed.
+- **Offer pages (ADR 018):** the server downloads only links accepted by `parseOfferUrl`
+  (`src/features/offer/lib/offer-url.ts`, an allowlist of job boards, redirects re-checked).
+  Never fetch a user-supplied URL any other way. Filling an existing card goes through
+  `fillFromOffer` (empty fields only) and is saved by the user, like every AI result.
 - **Filters and search state live in the URL** (nuqs), not in a global store (ADR 008). Parsers
   and the pure `filterApplications` live in `src/features/board/filters.ts`. A move made while
   filtering must map neighbours with `neighboursInFullColumn`.

@@ -1,3 +1,4 @@
+import { plainMailText } from "./sanitize";
 import { type MailReading } from "./types";
 
 type Mail = { from: string; subject: string; body: string };
@@ -22,7 +23,7 @@ function nfjStatus(status: string): MailReading["kind"] {
  */
 export function readKnownSender({ from, subject, body }: Mail): MailReading | null {
   const subj = subject.replace(/\s+/g, " ").trim();
-  const text = body.replace(/\s+/g, " ");
+  const text = plainMailText(body).replace(/\s+/g, " ");
 
   if (fromDomain(from, "justjoin.it")) {
     const role = /^You applied for (.+)$/i.exec(subj)?.[1];

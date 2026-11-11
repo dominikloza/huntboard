@@ -24,7 +24,19 @@ describe("applicationInputSchema", () => {
       salaryMin: 17000,
       salaryMax: 22000,
       stack: ["Next.js", "Tailwind", "Playwright"],
+      offerUrl: null,
     });
+  });
+
+  it("takes a full link to the offer, or nothing", () => {
+    const url = "https://justjoin.it/job-offer/kropla-mid-frontend";
+    expect(applicationInputSchema.parse({ ...valid, offerUrl: ` ${url} ` }).offerUrl).toBe(url);
+    expect(applicationInputSchema.safeParse({ ...valid, offerUrl: "justjoin.it" }).success).toBe(
+      false,
+    );
+    expect(
+      applicationInputSchema.safeParse({ ...valid, offerUrl: "javascript:alert(1)" }).success,
+    ).toBe(false);
   });
 
   it("accepts its own output (the Server Action re-validates parsed data)", () => {

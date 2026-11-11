@@ -78,6 +78,24 @@ test.describe("board CRUD", () => {
     await expect(page).toHaveURL(/\/board$/);
   });
 
+  test("a click beside the sheet closes it, the close button stays in view", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await column(page, "Wysłane").getByRole("link", { name: "Mid Frontend Developer" }).click();
+    const dialog = page.getByRole("dialog", { name: "Teczka aplikacji" });
+    await expect(dialog).toBeVisible();
+
+    // Scroll to the end of the sheet: "Zamknij" must still be on screen.
+    await dialog.evaluate((box) => box.scrollTo(0, box.scrollHeight));
+    await expect(dialog.getByRole("button", { name: "Zamknij" })).toBeInViewport();
+
+    // The empty strip beside the sheet (left edge of the dialog box).
+    const box = await dialog.boundingBox();
+    if (!box) throw new Error("no dialog box");
+    await page.mouse.click(box.x + 8, box.y + box.height / 2);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page).toHaveURL(/\/board$/);
+  });
+
   test("cards of other users and invalid ids show not found", async ({ page }) => {
     // The page streams (Partial Prerendering), so the HTTP status is already 200 when the
     // lookup fails; Next.js then renders the not-found UI and a noindex robots tag.

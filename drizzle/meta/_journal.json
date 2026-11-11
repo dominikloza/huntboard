@@ -64,6 +64,20 @@
       "when": 1794416711789,
       "tag": "0008_mail_connection",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794422506106,
+      "tag": "0009_clean_mail_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794423370883,
+      "tag": "0010_offer_url",
+      "breakpoints": true
     }
   ]
 }

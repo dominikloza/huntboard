@@ -39,6 +39,7 @@ const columns = {
   city: applications.city,
   stack: applications.stack,
   matchScore: applications.matchScore,
+  offerUrl: applications.offerUrl,
 };
 
 // ---------------------------------------------------------------- Server Components
@@ -56,7 +57,10 @@ export async function getBoardApplications(): Promise<Application[]> {
 /** One card for the details page/modal. 404 for invalid ids and for other users' cards. */
 /** The sheet shows more than the board card: the AI's warnings about the offer. */
 export type ApplicationDetails = Application &
-  Pick<ApplicationRow, "redFlags" | "matchComment" | "roastComment" | "interviewQuestions">;
+  Pick<ApplicationRow, "redFlags" | "matchComment" | "roastComment" | "interviewQuestions"> & {
+    /** The offer text is stored (needed by AI comments and interview prep, ADR 018). */
+    hasOffer: boolean;
+  };
 
 export async function getApplicationOr404(id: string): Promise<ApplicationDetails> {
   const user = await requireUser();
@@ -69,6 +73,7 @@ export async function getApplicationOr404(id: string): Promise<ApplicationDetail
       matchComment: applications.matchComment,
       roastComment: applications.roastComment,
       interviewQuestions: applications.interviewQuestions,
+      hasOffer: sql<boolean>`${applications.rawOffer} is not null`,
     })
     .from(applications)
     .where(and(eq(applications.id, id), eq(applications.userId, user.id)))

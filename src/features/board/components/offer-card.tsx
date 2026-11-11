@@ -21,7 +21,7 @@ type OfferCardProps = {
 
 /** One application as a perforated sheet of paper. */
 export function OfferCard({ application, href, handle, className }: OfferCardProps) {
-  const { company, role, salaryMin, salaryMax, matchScore, stamp } = application;
+  const { company, role, salaryMin, salaryMax, matchScore, stamp, stack } = application;
 
   return (
     <article
@@ -53,8 +53,15 @@ export function OfferCard({ application, href, handle, className }: OfferCardPro
         <span>{formatSalaryRange(salaryMin, salaryMax, { compact: true })}</span>
         <span className="text-muted-foreground">{formatWorkMode(application)}</span>
       </div>
-      {matchScore != null && (
+      {/* Without a stack the score has little to stand on: the note below says why it is missing. */}
+      {matchScore != null && stack.length > 0 && (
         <MatchBadge score={matchScore} className="absolute top-2.5 right-2.5" />
+      )}
+      {stack.length === 0 && (
+        // A card from an e-mail knows only the company and the title (ADR 018).
+        <p className="mt-1.5 border-t border-dashed border-border pt-1.5 text-xs text-muted-foreground">
+          Brak stacku - do uzupełnienia
+        </p>
       )}
       {stamp && <Stamp className="mt-2">{stamp}</Stamp>}
     </article>

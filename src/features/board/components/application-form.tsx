@@ -39,6 +39,7 @@ export function toFormValues(application: Application): ApplicationFormValues {
     salaryMin: application.salaryMin == null ? "" : String(application.salaryMin),
     salaryMax: application.salaryMax == null ? "" : String(application.salaryMax),
     stack: application.stack.join(", "),
+    offerUrl: application.offerUrl ?? "",
   };
 }
 
@@ -64,6 +65,8 @@ export type FormStream = {
   values: ApplicationFormValues;
   answered: ReadonlySet<string>;
   active: boolean;
+  /** Fields to highlight when filled; all answered fields when not given (a new card). */
+  filled?: ReadonlySet<string>;
 };
 
 /** Placeholder while waiting for the field, a one-off highlight when its value arrives. */
@@ -74,6 +77,7 @@ function streamFieldClass(stream: FormStream | undefined, name: keyof Applicatio
       ? "[&_:is(input,select)]:animate-pulse [&_:is(input,select)]:bg-folder [&_:is(input,select)]:text-transparent"
       : undefined;
   }
+  if (stream.filled && !stream.filled.has(name)) return undefined;
   return "[&_:is(input,select)]:animate-fill";
 }
 
@@ -221,6 +225,22 @@ export function ApplicationForm({
           className={cn("sm:col-span-2", fieldClass("stack"))}
         >
           {(field) => <Input {...field} {...register("stack")} />}
+        </FormField>
+
+        <FormField
+          label="Link do ogłoszenia"
+          error={errors.offerUrl?.message}
+          className={cn("sm:col-span-2", fieldClass("offerUrl"))}
+        >
+          {(field) => (
+            <Input
+              {...field}
+              type="url"
+              inputMode="url"
+              className="font-mono text-sm"
+              {...register("offerUrl")}
+            />
+          )}
         </FormField>
       </div>
 

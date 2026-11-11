@@ -97,6 +97,8 @@ export const applications = pgTable(
     city: text("city"),
     redFlags: jsonb("red_flags").$type<string[]>().notNull().default([]),
     rawOffer: text("raw_offer"),
+    /** Link to the offer page: typed in the form or found in a confirmation e-mail (ADR 018). */
+    offerUrl: text("offer_url"),
     /** Computed in code from the profile (scoreMatch, ADR 011), not by the AI. */
     matchScore: smallint("match_score"),
     /** Last AI comments on the match, one per tone. */

@@ -23,10 +23,11 @@ export type Application = Pick<
   | "city"
   | "stack"
   | "matchScore"
+  | "offerUrl"
 >;
 
 /** What a card needs to be drawn (no ordering/version data), e.g. styleguide demo cards. */
-export type ApplicationCard = Omit<Application, "position" | "version"> & {
+export type ApplicationCard = Omit<Application, "position" | "version" | "offerUrl"> & {
   /** Short stamp text, e.g. "Wysłano 04.11". Only when it carries information. */
   stamp?: string;
 };

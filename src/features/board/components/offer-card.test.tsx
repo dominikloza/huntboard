@@ -27,6 +27,14 @@ describe("OfferCard", () => {
     expect(screen.getByText("zdalnie")).toBeInTheDocument();
   });
 
+  it("marks a card without a stack as one to fill in, and only that one", () => {
+    const { rerender } = render(<OfferCard application={{ ...base, stack: [] }} />);
+    expect(screen.getByText("Brak stacku - do uzupełnienia")).toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: /Dopasowanie/ })).not.toBeInTheDocument();
+    rerender(<OfferCard application={base} />);
+    expect(screen.queryByText(/do uzupełnienia/)).not.toBeInTheDocument();
+  });
+
   it("exposes the match score to screen readers", () => {
     render(<OfferCard application={base} />);
     expect(screen.getByRole("img", { name: "Dopasowanie 88 na 100" })).toBeInTheDocument();

@@ -18,6 +18,12 @@ const optionalText = (max: number) =>
     .transform((v) => v?.trim() || null)
     .pipe(z.string().max(max, `Maksymalnie ${max} znaków.`).nullable());
 
+/** Empty, or a full http(s) link (the offer page). */
+const optionalUrl = optionalText(500).refine(
+  (v) => v === null || /^https?:\/\/[^\s]+\.[^\s]+$/i.test(v),
+  "Wklej pełny link, np. https://justjoin.it/job-offer/...",
+);
+
 /** Accepts "17 000", "17000", 17000, "" or null. Monthly salary in PLN. */
 export const salaryField = z
   .union([z.string(), z.number(), z.null()])
@@ -66,6 +72,7 @@ export const applicationInputSchema = z
     salaryMin: salaryField,
     salaryMax: salaryField,
     stack: stackField,
+    offerUrl: optionalUrl,
     // Set only when the card comes from a pasted offer (AI intake). Undefined = leave unchanged.
     rawOffer: z.string().trim().max(OFFER_MAX_LENGTH).optional(),
     redFlags: z.array(z.string().trim().min(1).max(200)).max(MAX_RED_FLAGS).optional(),
@@ -88,6 +95,7 @@ export const EMPTY_APPLICATION_FORM: ApplicationFormValues = {
   salaryMin: "",
   salaryMax: "",
   stack: "",
+  offerUrl: "",
 };
 
 export const applicationIdSchema = z.uuid();

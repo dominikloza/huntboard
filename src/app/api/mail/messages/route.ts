@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { readKnownSender } from "@/features/mail/lib/known-senders";
+import { plainMailText, sanitizeReading } from "@/features/mail/lib/sanitize";
 import { bearerToken } from "@/features/mail/lib/token";
 import { type IncomingMail, type MailReading } from "@/features/mail/lib/types";
 import { mailBatchSchema } from "@/features/mail/schemas";
@@ -9,7 +10,12 @@ import { settleWithin } from "@/lib/ai/http";
 import { AiNotConfiguredError, getModel, modelLabel } from "@/lib/ai/model";
 import { classifyProviderError } from "@/lib/ai/provider-error";
 import { reserveAiCallForMailUser } from "@/lib/db/queries/ai-usage";
-import { applyMailReadings, mailUserForToken, unseenMessageIds } from "@/lib/db/queries/mail";
+import {
+  applyMailReadings,
+  attachOfferLinks,
+  mailUserForToken,
+  unseenMessageIds,
+} from "@/lib/db/queries/mail";
 
 export const maxDuration = 30;
 
@@ -37,7 +43,9 @@ export async function POST(request: Request) {
     userId,
     parsed.data.messages.map((m) => m.messageId),
   );
-  const mails: IncomingMail[] = parsed.data.messages.filter((m) => unseen.has(m.messageId));
+  const mails: IncomingMail[] = parsed.data.messages
+    .filter((m) => unseen.has(m.messageId))
+    .map((m) => ({ ...m, body: plainMailText(m.body) }));
 
   const read: { mail: IncomingMail; reading: MailReading }[] = [];
   const forAi: IncomingMail[] = [];
@@ -89,12 +97,18 @@ export async function POST(request: Request) {
     }
   }
 
-  const summary = await applyMailReadings(userId, read);
+  const summary = await applyMailReadings(
+    userId,
+    read.map(({ mail, reading }) => ({ mail, reading: sanitizeReading(reading) })),
+  );
+  // Also for e-mails seen before: re-running setup() fills links of older cards (ADR 018).
+  const linked = await attachOfferLinks(userId, parsed.data.messages);
   return json({
     received: parsed.data.messages.length,
     processed: read.length,
     skipped: parsed.data.messages.length - mails.length,
     ...summary,
+    linked,
     aiError,
   });
 }

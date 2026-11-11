@@ -28,6 +28,7 @@ import { streamOfferExtraction } from "@/features/extract/server/stream-extracti
 import { streamInterviewQuestions } from "@/features/interview/server/stream-questions";
 import { readKnownSender } from "@/features/mail/lib/known-senders";
 import { mailCasesSchema } from "@/features/mail/lib/mail-cases";
+import { plainMailText, sanitizeReading } from "@/features/mail/lib/sanitize";
 import { streamMailReadings } from "@/features/mail/server/read-mail";
 import { scoreMatch } from "@/features/match/lib/score";
 import { type MatchTone } from "@/features/match/schemas";
@@ -187,7 +188,7 @@ async function mailSuite(model: Model, only?: string): Promise<Suite> {
         log({
           name: `${c.id} (reguły)`,
           why: c.why,
-          checks: scoreMailReading(known, c),
+          checks: scoreMailReading(sanitizeReading(known), c),
           ms: 0,
           tokens: 0,
         }),
@@ -202,11 +203,16 @@ async function mailSuite(model: Model, only?: string): Promise<Suite> {
     async (onError) => {
       const result = streamMailReadings({
         model,
-        mails: forAi.map((c, index) => ({ index, from: c.from, subject: c.subject, body: c.body })),
+        mails: forAi.map((c, index) => ({
+          index,
+          from: c.from,
+          subject: c.subject,
+          body: plainMailText(c.body),
+        })),
         onError,
       });
       const [output, usage] = await Promise.all([result.output, result.totalUsage]);
-      readings = new Map(output.results.map((r) => [r.index, r]));
+      readings = new Map(output.results.map((r) => [r.index, sanitizeReading(r)]));
       return { checks: [], tokens: tokensOf(usage) };
     },
   );

@@ -43,9 +43,12 @@ export function MatchPanel({
   applicationId,
   breakdown,
   saved,
+  hasStack = true,
 }: {
   applicationId: string;
   breakdown: MatchBreakdown | null;
+  /** Without a stack (a card from an e-mail) the score and comments have little to work on. */
+  hasStack?: boolean;
   saved: Record<MatchTone, StoredMatchComment | null>;
 }) {
   const [tone, setTone] = useState<MatchTone>("coach");
@@ -132,6 +135,13 @@ export function MatchPanel({
           </div>
         ))}
       </dl>
+
+      {!hasStack && (
+        <p className="border-l-[1.5px] border-ink pl-3 text-sm">
+          Ta teczka nie ma stacku, więc wynik i komentarz będą mało warte. Najpierw uzupełnij ją z
+          ogłoszenia poniżej.
+        </p>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div role="group" aria-label="Ton komentarza" className="flex">

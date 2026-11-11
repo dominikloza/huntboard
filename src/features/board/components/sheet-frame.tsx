@@ -35,18 +35,30 @@ export function SheetModal({ title, children }: { title: string; children: React
           <Dialog.Overlay className="fixed inset-0 z-40 bg-ink/40" />
           <Dialog.Content
             aria-describedby={undefined}
+            // The content box fills the screen around the sheet, so Radix sees a click beside the
+            // sheet as inside. Close when the press lands on the box itself, not on the sheet.
+            onPointerDown={(event) => {
+              const box = event.currentTarget;
+              // A press on the box's own scrollbar is scrolling, not closing.
+              const onScrollbar =
+                event.clientX - box.getBoundingClientRect().left >= box.clientWidth;
+              if (event.target === box && !onScrollbar) router.back();
+            }}
             className="fixed inset-x-0 top-0 z-50 flex max-h-dvh justify-center overflow-y-auto p-4 outline-none sm:top-[8vh] sm:max-h-[84vh]"
           >
             <div className={cn(sheetClasses, "relative h-fit")}>
+              {/* Sticky, so a long card can be closed without scrolling back up. */}
+              <div className="sticky top-0 z-10 -mt-3 -mr-3 flex h-0 justify-end sm:-mt-5 sm:-mr-5">
+                <Dialog.Close
+                  aria-label="Zamknij"
+                  className="flex size-9 shrink-0 items-center justify-center border-[1.5px] border-transparent bg-card text-muted-foreground hover:border-ink hover:text-foreground"
+                >
+                  <X aria-hidden weight="bold" className="size-5" />
+                </Dialog.Close>
+              </div>
               <Dialog.Title className="mb-6 pr-10 font-display text-[28px] leading-tight font-extrabold tracking-[-0.03em]">
                 {title}
               </Dialog.Title>
-              <Dialog.Close
-                aria-label="Zamknij"
-                className="absolute top-4 right-4 flex size-9 items-center justify-center text-muted-foreground hover:text-foreground"
-              >
-                <X aria-hidden weight="bold" className="size-5" />
-              </Dialog.Close>
               {children}
             </div>
           </Dialog.Content>

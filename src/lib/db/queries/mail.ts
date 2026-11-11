@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, gte, inArray, isNotNull, max, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, isNull, max, sql } from "drizzle-orm";
 import { connection } from "next/server";
 
 import { type ApplicationStatus, type MailKind } from "@/features/board/constants";
@@ -9,6 +9,7 @@ import { decideMail } from "@/features/mail/lib/decide";
 import { generateMailToken, hashMailToken, tokenHint } from "@/features/mail/lib/token";
 import { type CardForMail, type IncomingMail, type MailReading } from "@/features/mail/lib/types";
 import { scoreMatch } from "@/features/match/lib/score";
+import { offerUrlInMail } from "@/features/offer/lib/offer-url";
 import { requireSessionUser, requireUser } from "@/lib/auth/session";
 
 import { getDb } from "../client";
@@ -149,6 +150,61 @@ export async function applyMailReadings(
     }
   });
   return summary;
+}
+
+/**
+ * Links to the offer found in e-mails (ADR 018), for cards that have none yet. Runs on every
+ * batch, also for e-mails seen before: re-running `setup` in the script fills the links of
+ * cards created earlier. Raw bodies: the links are cut out of the text the rules read.
+ */
+export async function attachOfferLinks(
+  userId: string,
+  mails: { messageId: string; body: string }[],
+): Promise<number> {
+  if (mails.length === 0) return 0;
+  const db = getDb();
+  const rows = await db
+    .select({
+      messageId: mailMessages.messageId,
+      id: applications.id,
+      company: applications.company,
+      role: applications.role,
+    })
+    .from(mailMessages)
+    .innerJoin(
+      applications,
+      and(eq(applications.id, mailMessages.applicationId), eq(applications.userId, userId)),
+    )
+    .where(
+      and(
+        eq(mailMessages.userId, userId),
+        inArray(
+          mailMessages.messageId,
+          mails.map((m) => m.messageId),
+        ),
+        isNull(applications.offerUrl),
+      ),
+    );
+
+  const bodies = new Map(mails.map((m) => [m.messageId, m.body]));
+  let linked = 0;
+  for (const row of rows) {
+    const url = offerUrlInMail(bodies.get(row.messageId) ?? "", row);
+    if (!url) continue;
+    const updated = await db
+      .update(applications)
+      .set({ offerUrl: url })
+      .where(
+        and(
+          eq(applications.id, row.id),
+          eq(applications.userId, userId),
+          isNull(applications.offerUrl),
+        ),
+      )
+      .returning({ id: applications.id });
+    linked += updated.length;
+  }
+  return linked;
 }
 
 async function createCardFromMail(
