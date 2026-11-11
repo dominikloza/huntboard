@@ -55,6 +55,19 @@ describe("offerTextFromHtml", () => {
   });
 });
 
+describe("the page description", () => {
+  it("goes first: it keeps the PLN range when the page shows another currency", () => {
+    const text = offerTextFromHtml(
+      page(
+        `<meta property="og:description" content="80 - 95 PLN Net/h (b2b) | Centrum, Warszawa">` +
+          `<script type="application/ld+json">${JSON.stringify(posting)}</script>`,
+      ),
+    );
+    expect(text.split("\n")[0]).toBe("Opis strony: 80 - 95 PLN Net/h (b2b) | Centrum, Warszawa");
+    expect(text).toContain("Firma: GS Services");
+  });
+});
+
 describe("htmlToText", () => {
   it("decodes entities, numeric ones too", () => {
     expect(htmlToText("<p>a&nbsp;&#8211;&#x41;&lt;b&gt;</p>")).toBe("a –A<b>");

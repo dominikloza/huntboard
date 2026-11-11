@@ -24,12 +24,29 @@ const strings = (value: unknown): string[] =>
     ? value.filter((v): v is string => typeof v === "string").map((v) => v.trim())
     : [];
 
+const PLN = /PLN|złotych|zł(?![a-ząćęłńóśźż])|\bzl\b/i;
+const FOREIGN = /\b(USD|EUR|GBP|CHF)\b|[$€£]/i;
+
+/**
+ * Can a salary from this offer be in złoty? Polish offers often skip the currency ("16-22k"),
+ * so only an offer that names another currency and never złoty is refused: the model would
+ * have to convert, and it has done so despite the prompt (USD shown to a US server, ADR 018).
+ */
+export function salaryCanBePln(offer: string): boolean {
+  return PLN.test(offer) || !FOREIGN.test(offer);
+}
+
 /**
  * Maps a (possibly partial, still streaming) AI result onto the application form.
  * Unknown or invalid values become empty fields: the user fills them in, nothing is guessed.
+ * `offer` is the text the model read: salaries are dropped when they cannot be in PLN.
  */
-export function extractionToFormValues(extraction: StreamedExtraction): ApplicationFormValues {
+export function extractionToFormValues(
+  extraction: StreamedExtraction,
+  offer?: string,
+): ApplicationFormValues {
   if (!extraction) return EMPTY_APPLICATION_FORM;
+  const pln = offer === undefined || salaryCanBePln(offer);
   const workMode = WORK_MODES.find((mode) => mode === extraction.workMode);
 
   return {
@@ -39,8 +56,8 @@ export function extractionToFormValues(extraction: StreamedExtraction): Applicat
     seniority: text(extraction.seniority, 40),
     workMode: workMode ?? EMPTY_APPLICATION_FORM.workMode,
     city: text(extraction.city, 80),
-    salaryMin: salary(extraction.salaryMin),
-    salaryMax: salary(extraction.salaryMax),
+    salaryMin: pln ? salary(extraction.salaryMin) : "",
+    salaryMax: pln ? salary(extraction.salaryMax) : "",
     stack: strings(extraction.stack)
       .filter((item) => item.length > 0 && item.length <= 40)
       .slice(0, MAX_STACK)

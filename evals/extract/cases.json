@@ -168,5 +168,33 @@
       "salaryMax": 24000,
       "stack": ["Next.js", "React", "TypeScript"]
     }
+  },
+  {
+    "file": "13-jjit-page-usd-and-pln.txt",
+    "why": "A JustJoin.it page seen from a US server: USD in the body, PLN in the page description. Use the PLN rate x168, never convert USD",
+    "expected": {
+      "company": "TSS",
+      "roleIncludes": ["frontend", "react"],
+      "seniority": "Senior",
+      "workMode": "hybrid",
+      "city": "Warszawa",
+      "salaryMin": 13440,
+      "salaryMax": 15960,
+      "stack": ["React", "TypeScript", "Vite"]
+    }
+  },
+  {
+    "file": "14-usd-only.txt",
+    "why": "Salary only in USD: must stay empty, not converted",
+    "expected": {
+      "company": "Northwind Labs",
+      "roleIncludes": ["react"],
+      "seniority": "Senior",
+      "workMode": "remote",
+      "city": null,
+      "salaryMin": null,
+      "salaryMax": null,
+      "stack": ["React", "TypeScript", "Redux Toolkit", "D3"]
+    }
   }
 ]

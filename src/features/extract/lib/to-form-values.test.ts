@@ -7,7 +7,27 @@ import {
   extractionRedFlags,
   extractionToFormValues,
   looksEmpty,
+  salaryCanBePln,
 } from "./to-form-values";
+
+describe("salary currency guard", () => {
+  const usd = { salaryMin: 3064, salaryMax: 3639 };
+
+  it("drops a salary the model made from another currency", () => {
+    const values = extractionToFormValues(usd, "21,41 - 25,42 USD Net per hour - B2B");
+    expect([values.salaryMin, values.salaryMax]).toEqual(["", ""]);
+  });
+
+  it("keeps it when the offer gives an amount in złoty", () => {
+    expect(extractionToFormValues(usd, "Opis strony: 80 - 95 PLN Net/h (b2b)").salaryMin).toBe(
+      "3064",
+    );
+    expect(salaryCanBePln("16 000 - 22 000 zł netto, czyli ok. 4000 EUR")).toBe(true);
+    expect(salaryCanBePln("Widełki: 16-22k B2B")).toBe(true); // no currency: Polish habit
+    expect(salaryCanBePln("Złota 44, Warszawa, 5000 EUR")).toBe(false);
+    expect(salaryCanBePln("$40-50/h, remote")).toBe(false);
+  });
+});
 
 describe("extractionToFormValues", () => {
   it("returns the empty form before anything arrives", () => {

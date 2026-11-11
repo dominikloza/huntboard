@@ -65,9 +65,14 @@ export function useOfferFill({
   const stream = useMemo<FormStream | undefined>(() => {
     if (!offer) return undefined;
     const answered = answeredFields(object);
-    const { values, filled } = fillFromOffer(card, extractionToFormValues(object), answered, {
-      workModeIsGuess,
-    });
+    const { values, filled } = fillFromOffer(
+      card,
+      extractionToFormValues(object, offer.text),
+      answered,
+      {
+        workModeIsGuess,
+      },
+    );
     if (offer.url && !card.offerUrl) {
       values.offerUrl = offer.url;
       filled.add("offerUrl");

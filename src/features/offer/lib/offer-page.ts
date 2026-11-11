@@ -109,6 +109,19 @@ function postingToText(posting: JsonObject): string {
     .join("\n");
 }
 
+const META_DESCRIPTION =
+  /<meta\b[^>]*(?:name|property)=["'](?:og:)?description["'][^>]*content=["']([^"']*)["'][^>]*>|<meta\b[^>]*content=["']([^"']*)["'][^>]*(?:name|property)=["'](?:og:)?description["'][^>]*>/i;
+
+/**
+ * The page's own summary. Boards localise the visible salary by the visitor's country (the
+ * server is not in Poland: JustJoin.it shows it USD), but the description keeps the PLN range.
+ */
+function pageDescription(html: string): string | null {
+  const match = META_DESCRIPTION.exec(html);
+  const text = decode(match?.[1] ?? match?.[2] ?? "").trim();
+  return text ? `Opis strony: ${text}` : null;
+}
+
 const LD_JSON = /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
 
 /**
@@ -117,6 +130,8 @@ const LD_JSON = /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?
  * text is the fallback. Cut to what the extraction accepts.
  */
 export function offerTextFromHtml(html: string): string {
+  const withDescription = (text: string) =>
+    [pageDescription(html), text].filter(Boolean).join("\n").slice(0, OFFER_MAX_LENGTH);
   for (const [, json] of html.matchAll(LD_JSON)) {
     let data: Json;
     try {
@@ -127,12 +142,9 @@ export function offerTextFromHtml(html: string): string {
     const posting = findJobPostings(data)[0];
     if (posting) {
       const text = postingToText(posting);
-      if (text.length >= 200) return text.slice(0, OFFER_MAX_LENGTH);
+      if (text.length >= 200) return withDescription(text);
     }
   }
   const body = /<body\b[^>]*>([\s\S]*)<\/body>/i.exec(html)?.[1] ?? html;
-  return htmlToText(body.replace(/<(nav|footer|header)\b[\s\S]*?<\/\1>/gi, " ")).slice(
-    0,
-    OFFER_MAX_LENGTH,
-  );
+  return withDescription(htmlToText(body.replace(/<(nav|footer|header)\b[\s\S]*?<\/\1>/gi, " ")));
 }

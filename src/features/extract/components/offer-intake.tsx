@@ -68,12 +68,12 @@ export function OfferIntake({ onDone }: { onDone: () => void }) {
     () =>
       fromAi
         ? {
-            values: extractionToFormValues(object),
+            values: extractionToFormValues(object, offer),
             answered: answeredFields(object),
             active: isLoading,
           }
         : undefined,
-    [fromAi, object, isLoading],
+    [fromAi, object, isLoading, offer],
   );
   const redFlags = fromAi ? extractionRedFlags(object) : [];
 

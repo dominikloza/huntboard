@@ -1,0 +1,5 @@
+Senior React Engineer - Northwind Labs (US company, remote from Poland)
+Compensation: $38 - $46 per hour, B2B contract, paid in USD.
+We build analytics dashboards with React, TypeScript, Redux Toolkit and D3.
+5+ years of frontend experience, strong English, overlap with EST until 12:00 local time.
+Fully remote.

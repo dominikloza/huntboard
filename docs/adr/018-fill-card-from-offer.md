@@ -26,8 +26,13 @@ the details must be captured soon after applying.
   theprotocol.it, Pracuj.pl, Bulldogjob, Solid.Jobs): https, default port, a single-offer path.
   Every redirect is checked again (`redirect: "manual"`), 10 s timeout, 3 MB cap. An expired
   offer redirects to a listing, fails the check, and the user is asked to paste the text.
-- **Reading the page:** the schema.org `JobPosting` that boards publish for Google Jobs
-  (structured, no menus or cookie banners), and the visible text as a fallback.
+- **Reading the page:** the page description first, then the schema.org `JobPosting` that
+  boards publish for Google Jobs (structured, no menus or cookie banners), and the visible text
+  as a fallback. Boards localise the visible salary by the visitor's country: from Vercel's US
+  region JustJoin.it shows USD, while the description keeps the PLN rate.
+- **Salaries stay in PLN.** The prompt prefers PLN amounts and forbids converting other
+  currencies; `salaryCanBePln` also drops a salary in code when the offer names only a foreign
+  currency (the model once turned 21-25 USD/h into "3064-3639 zł"). Eval cases 13 and 14.
 - **Visible gaps:** a card without a stack says "Brak stacku - do uzupełnienia" on the board and
   hides its score; inside, the panel is open and the match and prep sections point to it.
 

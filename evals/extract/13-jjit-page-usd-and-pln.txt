@@ -1,0 +1,15 @@
+Opis strony: 80 - 95 PLN Net/h (b2b) | Centrum, Warszawa
+Programista Frontend React
+Firma: TSS
+Lokalizacja: Warszawa
+Wynagrodzenie: 21,41 - 25,42 USD Net per hour - B2B
+Forma zatrudnienia: B2B, Full-time
+Doświadczenie: minimum 5 lat doświadczenia
+Szukamy doświadczonego programisty frontend do zespołu rozwijającego system dla klienta z branży finansowej. Praca hybrydowa, 2 dni w biurze w centrum Warszawy.
+Wymagania:
+- minimum 5 lat doświadczenia w tworzeniu aplikacji webowych
+- bardzo dobra znajomość React i TypeScript
+- JavaScript (ES6+), Vite
+- Bootstrap, jQuery w utrzymywanych modułach
+- Git
+Mile widziane: testy jednostkowe, doświadczenie w bankowości.
