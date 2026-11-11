@@ -12,7 +12,7 @@ concurrency:
 jobs:
   quality:
     name: Lint, typecheck, unit tests, build
-    # Pinned: ubuntu-latest moved to 26.04, where apt could not fetch Playwright's system deps.
+    # Pinned to a known image; the e2e step does not depend on apt (see the install step).
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -48,7 +48,7 @@ jobs:
   e2e:
     name: E2E + accessibility (Playwright)
     needs: quality
-    # Pinned: ubuntu-latest moved to 26.04, where apt could not fetch Playwright's system deps.
+    # Pinned to a known image; the e2e step does not depend on apt (see the install step).
     runs-on: ubuntu-24.04
     services:
       postgres:
@@ -84,7 +84,9 @@ jobs:
         with:
           name: next-build
           path: .next
-      - run: pnpm exec playwright install --with-deps chromium
+      # Browser only: GitHub's images already have Chrome's system libraries. --with-deps also
+      # apt-installs extra CJK/X11 fonts we do not need, and failed when the Ubuntu mirrors were down.
+      - run: pnpm exec playwright install chromium
       - run: pnpm e2e
       - uses: actions/upload-artifact@v4
         if: failure()
