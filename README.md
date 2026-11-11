@@ -101,6 +101,11 @@ without a click ([ADR 009](docs/adr/009-streaming-offer-extraction.md)).
 - **Funnel statistics** ([ADR 016](docs/adr/016-stage-history-and-stats.md)): a stage history
   written with every move, a pure `computeStats` (funnel, median answer time, applications
   waiting 14+ days, weekly activity) and server-rendered HTML charts with no client JS.
+- **Mail sync** ([ADR 017](docs/adr/017-mail-sync.md)): a small Apps Script in your Gmail sends
+  recruitment mail to Huntboard; known senders (JustJoin.it, No Fluff Jobs, eRecruiter) are read
+  by rules, the rest by one AI call. Confirmations create cards, answers move them, unsure
+  readings wait for approval, every change can be undone, and applications without an answer
+  for 30 days move to rejected. The mail body is never stored.
 - **Evals** (`pnpm eval`): 12 realistic offers (B2B and UoP, hourly and daily rates, EUR, English, an injection attempt) and 8 coach/roast comments, every check a rule in
   code (no LLM judge). Latest run on Gemini 3.5 Flash Lite: **99% (127/128)**,
   [report](evals/report.md).

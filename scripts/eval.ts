@@ -2,10 +2,11 @@
  * `pnpm eval`: runs the AI eval suites against the configured model (AI_PROVIDER from
  * .env.local), scores every answer with rules in code and writes evals/report.md.
  *
- *   pnpm eval                    all suites (12 extractions, 8 match comments, 4 question sets)
+ *   pnpm eval                    all suites (extraction, match comments, questions, mail)
  *   pnpm eval --suite extract    offer extraction only (evals/extract)
  *   pnpm eval --suite match      coach and roast comments only (evals/match)
  *   pnpm eval --suite questions  interview prep for the same cases (evals/match)
+ *   pnpm eval --suite mail       recruitment e-mails: rules first, the AI for the rest (evals/mail)
  *   pnpm eval --only 08          cases whose file name or id contains "08"
  *   pnpm eval --min 0.85         exit with code 1 below 85% passed checks (for CI)
  *   pnpm eval --rpm 30           requests per minute (default 12: Gemini's free tier allows 15)
@@ -25,6 +26,9 @@ import { format, resolveConfig } from "prettier";
 
 import { streamOfferExtraction } from "@/features/extract/server/stream-extraction";
 import { streamInterviewQuestions } from "@/features/interview/server/stream-questions";
+import { readKnownSender } from "@/features/mail/lib/known-senders";
+import { mailCasesSchema } from "@/features/mail/lib/mail-cases";
+import { streamMailReadings } from "@/features/mail/server/read-mail";
 import { scoreMatch } from "@/features/match/lib/score";
 import { type MatchTone } from "@/features/match/schemas";
 import { streamMatchComment } from "@/features/match/server/stream-comment";
@@ -36,6 +40,7 @@ import {
   summarize,
 } from "@/lib/ai/evals/score-extraction";
 import { createPacer, retryAfterMs, sleep } from "@/lib/ai/evals/retry";
+import { scoreMailReading } from "@/lib/ai/evals/score-mail";
 import { scoreQuestions } from "@/lib/ai/evals/score-questions";
 import { getModel, modelLabel } from "@/lib/ai/model";
 
@@ -167,6 +172,71 @@ async function questionsSuite(model: Model, only?: string): Promise<Suite> {
   return { title: "Interview questions", source: "evals/match/", results };
 }
 
+/** Same path as /api/mail/messages: known senders by rules, the rest in one AI call. */
+async function mailSuite(model: Model, only?: string): Promise<Suite> {
+  const cases = mailCasesSchema
+    .parse(JSON.parse(await readFile(path.join(EVALS, "mail", "cases.json"), "utf8")))
+    .filter((c) => !only || c.id.includes(only));
+
+  const results: CaseResult[] = [];
+  const forAi = cases.filter((c) => !readKnownSender(c));
+  for (const c of cases) {
+    const known = readKnownSender(c);
+    if (known) {
+      results.push(
+        log({
+          name: `${c.id} (reguły)`,
+          why: c.why,
+          checks: scoreMailReading(known, c),
+          ms: 0,
+          tokens: 0,
+        }),
+      );
+    }
+  }
+
+  let readings = new Map<number, Parameters<typeof scoreMailReading>[0]>();
+  const batch = await measure(
+    "mail-batch",
+    "one AI call for the e-mails rules do not know",
+    async (onError) => {
+      const result = streamMailReadings({
+        model,
+        mails: forAi.map((c, index) => ({ index, from: c.from, subject: c.subject, body: c.body })),
+        onError,
+      });
+      const [output, usage] = await Promise.all([result.output, result.totalUsage]);
+      readings = new Map(output.results.map((r) => [r.index, r]));
+      return { checks: [], tokens: tokensOf(usage) };
+    },
+  );
+  forAi.forEach((c, index) => {
+    const reading = readings.get(index);
+    results.push(
+      log(
+        reading
+          ? {
+              name: `${c.id} (AI)`,
+              why: c.why,
+              checks: scoreMailReading(reading, c),
+              ms: batch.ms,
+              tokens: 0,
+            }
+          : {
+              name: `${c.id} (AI)`,
+              why: c.why,
+              checks: [],
+              ms: batch.ms,
+              tokens: 0,
+              error: batch.error ?? "brak wyniku",
+            },
+      ),
+    );
+  });
+  if (results[0]) results[0].tokens = batch.tokens;
+  return { title: "Recruitment e-mails", source: "evals/mail/", results };
+}
+
 function log(r: CaseResult): CaseResult {
   const failed = r.checks.filter((check) => !check.pass).map((check) => check.field);
   console.log(
@@ -246,8 +316,10 @@ async function main() {
     allowPositionals: true, // pnpm may pass a literal "--" through
   });
   const which = values.suite ?? "all";
-  if (!["all", "extract", "match", "questions"].includes(which)) {
-    throw new Error(`Unknown suite "${which}". Use extract, match, questions or leave it out.`);
+  if (!["all", "extract", "match", "questions", "mail"].includes(which)) {
+    throw new Error(
+      `Unknown suite "${which}". Use extract, match, questions, mail or leave it out.`,
+    );
   }
 
   const rpm = Number(values.rpm ?? process.env.EVAL_RPM ?? 12);
@@ -263,6 +335,7 @@ async function main() {
   if (run("extract")) suites.push(await extractSuite(model, values.only));
   if (run("match")) suites.push(await matchSuite(model, values.only));
   if (run("questions")) suites.push(await questionsSuite(model, values.only));
+  if (run("mail")) suites.push(await mailSuite(model, values.only));
 
   const all = totals(suites.flatMap((s) => s.results));
   const summary = `**Overall: ${pct(all.passed, all.total)} of checks passed** (${all.passed}/${all.total}).`;

@@ -1,4 +1,4 @@
-import { resolveAuthUrls } from "./base-url";
+import { publicAppUrl, resolveAuthUrls } from "./base-url";
 
 describe("resolveAuthUrls", () => {
   it("uses BETTER_AUTH_URL locally", () => {
@@ -37,5 +37,20 @@ describe("resolveAuthUrls", () => {
 
   it("fails loudly when nothing is configured", () => {
     expect(() => resolveAuthUrls({})).toThrow(/BETTER_AUTH_URL/);
+  });
+});
+
+describe("publicAppUrl", () => {
+  it("prefers the configured URL, then the production domain, never a preview", () => {
+    expect(publicAppUrl({ BETTER_AUTH_URL: "https://huntboard.example" })).toBe(
+      "https://huntboard.example",
+    );
+    expect(
+      publicAppUrl({
+        VERCEL_PROJECT_PRODUCTION_URL: "huntboard-two.vercel.app",
+        VERCEL_URL: "huntboard-abc123.vercel.app",
+      }),
+    ).toBe("https://huntboard-two.vercel.app");
+    expect(publicAppUrl({})).toBe("http://localhost:3000");
   });
 });

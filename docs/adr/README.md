@@ -18,3 +18,4 @@
 | 014 | [Landing page with scroll-driven CSS animations](014-landing-scroll-animations.md)                          | Accepted |
 | 015 | [Interview questions generated from the offer](015-interview-questions.md)                                  | Accepted |
 | 016 | [Stage history and funnel statistics](016-stage-history-and-stats.md)                                       | Accepted |
+| 017 | [Mail sync through a Gmail Apps Script](017-mail-sync.md)                                                   | Accepted |

@@ -10,12 +10,16 @@ import {
   smallint,
   text,
   timestamp,
+  unique,
   uuid,
 } from "drizzle-orm/pg-core";
 
 import {
   AI_USAGE_KINDS,
   APPLICATION_STATUSES,
+  EVENT_SOURCES,
+  MAIL_ACTIONS,
+  MAIL_KINDS,
   REMOTE_PREFERENCES,
   WORK_MODES,
 } from "@/features/board/constants";
@@ -29,6 +33,9 @@ export const applicationStatus = pgEnum("application_status", APPLICATION_STATUS
 export const workMode = pgEnum("work_mode", WORK_MODES);
 export const remotePreference = pgEnum("remote_preference", REMOTE_PREFERENCES);
 export const aiUsageKind = pgEnum("ai_usage_kind", AI_USAGE_KINDS);
+export const eventSource = pgEnum("event_source", EVENT_SOURCES);
+export const mailKind = pgEnum("mail_kind", MAIL_KINDS);
+export const mailAction = pgEnum("mail_action", MAIL_ACTIONS);
 
 /**
  * Fractional index keys ("Zz" < "a0" < "a1") must compare byte by byte. Database default
@@ -146,9 +153,61 @@ export const applicationEvents = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     status: applicationStatus("status").notNull(),
+    /** "timeout" moves are silence, not an answer: the statistics leave them out of answer time. */
+    source: eventSource("source").notNull().default("board"),
     createdAt: timestamps.createdAt,
   },
   (t) => [index("application_events_user_created_idx").on(t.userId, t.createdAt)],
+);
+
+/**
+ * A user's mail connection (ADR 017): a personal token the Gmail script sends with every batch
+ * (only its SHA-256 hash is stored) and the auto-reject setting.
+ */
+export const mailConnections = pgTable("mail_connections", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  /** The last characters of the token, so the user can recognise it in the settings. */
+  tokenHint: text("token_hint").notNull(),
+  /** Cards sent this many days ago without an answer move to "rejected"; null = never. */
+  autoRejectDays: smallint("auto_reject_days").default(30),
+  lastSyncAt: timestamp("last_sync_at", { withTimezone: true }),
+  createdAt: timestamps.createdAt,
+});
+
+/**
+ * One row per recruitment e-mail the script sent: what it was and what Huntboard did. The body
+ * is never stored. `previousStatus` makes "Cofnij" possible.
+ */
+export const mailMessages = pgTable(
+  "mail_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    /** Gmail's message id: the same e-mail sent twice is processed once. */
+    messageId: text("message_id").notNull(),
+    receivedAt: timestamp("received_at", { withTimezone: true }).notNull(),
+    sender: text("sender").notNull(),
+    subject: text("subject").notNull(),
+    kind: mailKind("kind").notNull(),
+    action: mailAction("action").notNull(),
+    company: text("company"),
+    role: text("role"),
+    applicationId: uuid("application_id").references(() => applications.id, {
+      onDelete: "set null",
+    }),
+    previousStatus: applicationStatus("previous_status"),
+    newStatus: applicationStatus("new_status"),
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [
+    unique("mail_messages_user_message_unique").on(t.userId, t.messageId),
+    index("mail_messages_user_created_idx").on(t.userId, t.createdAt),
+  ],
 );
 
 /** One row per AI call (reserved before the call, tokens filled in after): limits and cost. */
@@ -189,5 +248,7 @@ export const profilesRelations = relations(profiles, ({ one }) => ({
 export type ApplicationRow = typeof applications.$inferSelect;
 export type NewApplicationRow = typeof applications.$inferInsert;
 export type ApplicationEventRow = typeof applicationEvents.$inferSelect;
+export type NewApplicationEventRow = typeof applicationEvents.$inferInsert;
+export type MailMessageRow = typeof mailMessages.$inferSelect;
 export type ProfileRow = typeof profiles.$inferSelect;
 export type NewProfileRow = typeof profiles.$inferInsert;

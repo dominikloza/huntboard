@@ -33,6 +33,7 @@ export async function getStatsDataForSession(): Promise<{
         applicationId: applicationEvents.applicationId,
         status: applicationEvents.status,
         createdAt: applicationEvents.createdAt,
+        source: applicationEvents.source,
       })
       .from(applicationEvents)
       .where(eq(applicationEvents.userId, user.id)),

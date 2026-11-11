@@ -50,7 +50,9 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
   In render paths, call `await connection()` (from `next/server`) after `requireUser()` and before
   the first query: opening a Postgres connection uses crypto randomness, which Next.js forbids
   while prerendering.
-  The only exception is the guest cleanup cron (ADR 013), a system job guarded by `CRON_SECRET`.
+  The exceptions: the daily cron (ADR 013, guest cleanup and auto-reject), guarded by
+  `CRON_SECRET`, and the mail script route (ADR 017), where the user is the owner of the
+  hashed personal token (`mailUserForToken`).
 - **Session reads go behind `<Suspense>`** (Cache Components). Use `getCurrentUser()` /
   `requireUser()` from `src/lib/auth/session.ts`; never read cookies in a layout's top level.
 - Never edit `src/lib/db/schema/auth.ts` or `drizzle/*.sql` by hand; regenerate them. The
@@ -75,7 +77,7 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
   before the model call, `refund()` if the provider fails before answering, `record(usage)` in
   `after()`. Never call a model from a Route Handler without it.
 - **Evals:** prompt or model changes must be followed by `pnpm eval` (real model, writes
-  `evals/report.md`; suites `extract`, `match`, `questions`); add a case to `evals/extract/` for
+  `evals/report.md`; suites `extract`, `match`, `questions`, `mail`); add a case to `evals/extract/` for
   every bug the model makes. A new AI feature gets its own suite with rule-based checks.
 - **Match score (ADR 011):** computed only by `scoreMatch` (`src/features/match/lib/score.ts`),
   never by a model. Every write that can change it (card create/update, profile save, guest seed)
@@ -91,7 +93,12 @@ A task is done only when `pnpm check` passes and, for UI changes, `pnpm e2e` pas
   deployment that uses one.
 - **Stage history (ADR 016):** every write that changes a card's stage (create, form update,
   drag & drop move, guest seed) also inserts an `application_events` row in the same transaction
-  (`recordStage`). Statistics come only from `computeStats` (`src/features/stats/lib/stats.ts`).
+  (`recordStage` in `src/lib/db/queries/stage.ts`, with its `source`: board, email or timeout).
+  Statistics come only from `computeStats` (`src/features/stats/lib/stats.ts`).
+- **Mail sync (ADR 017):** what an e-mail does to the board is decided only by `decideMail`
+  (`src/features/mail/lib/decide.ts`, pure, tested). Known senders are rules in
+  `known-senders.ts`; add a case to `evals/mail/cases.json` for every misread e-mail. Never
+  store an e-mail body, and every automatic change must be undoable from the feed.
 - **Filters and search state live in the URL** (nuqs), not in a global store (ADR 008). Parsers
   and the pure `filterApplications` live in `src/features/board/filters.ts`. A move made while
   filtering must map neighbours with `neighboursInFullColumn`.

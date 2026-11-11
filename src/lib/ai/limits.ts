@@ -76,6 +76,7 @@ const KIND_LABEL: Record<AiUsageKind, string> = {
   match: "ocen dopasowania",
   roast: "roastów",
   questions: "zestawów pytań",
+  mail: "analiz poczty",
 };
 
 /** "Następne za 23 min." in Polish, rounded up so it never says "0 min". */

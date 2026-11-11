@@ -19,10 +19,36 @@ export type WorkMode = (typeof WORK_MODES)[number];
 export const REMOTE_PREFERENCES = ["remote", "hybrid", "office", "any"] as const;
 export type RemotePreference = (typeof REMOTE_PREFERENCES)[number];
 
-export const AI_USAGE_KINDS = ["extract", "match", "roast", "questions"] as const;
+export const AI_USAGE_KINDS = ["extract", "match", "roast", "questions", "mail"] as const;
 export type AiUsageKind = (typeof AI_USAGE_KINDS)[number];
 
 /** Pasted job offer text: long enough to extract from, short enough to keep AI cost bounded. */
 export const OFFER_MIN_LENGTH = 80;
 export const OFFER_MAX_LENGTH = 12_000;
 export const MAX_RED_FLAGS = 5;
+
+/** Where a stage change came from: the board, a recruitment e-mail, or silence (auto-reject). */
+export const EVENT_SOURCES = ["board", "email", "timeout"] as const;
+export type EventSource = (typeof EVENT_SOURCES)[number];
+
+/** What a recruitment e-mail says (ADR 017). */
+export const MAIL_KINDS = [
+  "applied",
+  "interview",
+  "offer",
+  "rejected",
+  "progress",
+  "other",
+] as const;
+export type MailKind = (typeof MAIL_KINDS)[number];
+
+/** What Huntboard did with an e-mail. */
+export const MAIL_ACTIONS = [
+  "created",
+  "moved",
+  "none",
+  "unmatched",
+  "proposal",
+  "undone",
+] as const;
+export type MailAction = (typeof MAIL_ACTIONS)[number];

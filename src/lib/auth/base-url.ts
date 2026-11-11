@@ -35,3 +35,16 @@ export function resolveAuthUrls(env: UrlEnv): { baseURL: string; trustedOrigins:
 
   return { baseURL: new URL(baseURL).origin, trustedOrigins: [...new Set(trustedOrigins)] };
 }
+
+/**
+ * The address people (and the Gmail script, ADR 017) should use: the production URL, not a
+ * preview deployment's.
+ */
+export function publicAppUrl(env: UrlEnv): string {
+  return (
+    env.BETTER_AUTH_URL ??
+    https(env.VERCEL_PROJECT_PRODUCTION_URL) ??
+    https(env.VERCEL_URL) ??
+    "http://localhost:3000"
+  );
+}

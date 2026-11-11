@@ -1,4 +1,4 @@
-import { type ApplicationStatus } from "@/features/board/constants";
+import { type ApplicationStatus, type EventSource } from "@/features/board/constants";
 
 export type StatsCard = {
   id: string;
@@ -7,7 +7,13 @@ export type StatsCard = {
   status: ApplicationStatus;
   createdAt: Date;
 };
-export type StatsEvent = { applicationId: string; status: ApplicationStatus; createdAt: Date };
+export type StatsEvent = {
+  applicationId: string;
+  status: ApplicationStatus;
+  createdAt: Date;
+  /** "timeout" = moved to rejected by silence (ADR 017): not an answer. Default "board". */
+  source?: EventSource;
+};
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEK_MS = 7 * DAY_MS;
@@ -95,7 +101,11 @@ export function computeStats(cards: StatsCard[], events: StatsEvent[], now: Date
     const sent = history.find((e) => e.status === "applied");
     if (!sent) continue;
     const answer = history.find(
-      (e) => e.createdAt > sent.createdAt && e.status !== "applied" && e.status !== "saved",
+      (e) =>
+        e.createdAt > sent.createdAt &&
+        e.status !== "applied" &&
+        e.status !== "saved" &&
+        e.source !== "timeout",
     );
     if (answer) {
       answerDays.push((answer.createdAt.getTime() - sent.createdAt.getTime()) / DAY_MS);

@@ -5,6 +5,7 @@ import { MockLanguageModelV4 } from "ai/test";
 
 import { type OfferExtraction } from "@/features/extract/schemas";
 import { type InterviewQuestions } from "@/features/interview/schemas";
+import { type MailReadings } from "@/features/mail/schemas";
 import { type MatchComment } from "@/features/match/schemas";
 
 /** What the demo model "extracts", whatever the input. Matches e2e/fixtures/offer.txt. */
@@ -82,6 +83,46 @@ export const DEMO_QUESTIONS: InterviewQuestions = {
   ],
 };
 
+/**
+ * The demo reading of recruitment e-mails: keywords instead of a model, so e2e tests can write
+ * e-mails that mean what they say. The company is the sender's display name.
+ */
+export function demoMailReadings(promptText: string): MailReadings {
+  const blocks = promptText.split("<email>").slice(1);
+  return {
+    results: blocks.map((block) => {
+      const index = Number(/index: (\d+)/.exec(block)?.[1] ?? -1);
+      const from = /from: (.*)/.exec(block)?.[1] ?? "";
+      const body = block.toLowerCase();
+      const kind = /niestety|regret|nie przechodzisz/.test(body)
+        ? "rejected"
+        : /zaprosić|zaproszenie|interview/.test(body)
+          ? "interview"
+          : /offer you|składamy ofertę/.test(body)
+            ? "offer"
+            : /dziękujemy za aplikację|thank you for (your )?appl/.test(body)
+              ? "applied"
+              : "other";
+      const company = from.split("<")[0]?.trim() || null;
+      const role = /stanowisko:? ([^.\n]+)/i.exec(block)?.[1]?.trim() ?? null;
+      return { index, kind, company, role, city: null, sure: true };
+    }),
+  };
+}
+
+/** All the text in a prompt (system + user parts). */
+function textOf(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) return value.map(textOf).join("\n");
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    if (typeof record.text === "string") return record.text;
+    if (typeof record.content === "string") return record.content;
+    return textOf(record.content);
+  }
+  return "";
+}
+
 /** Markers a test can put in the pasted text to drive the demo model. */
 const SLOW = "[demo:slow]";
 const FAIL = "[demo:fail]";
@@ -104,13 +145,15 @@ export function createDemoModel() {
 
       // The match prompt has a <score> block; the roast instructions start with "ROAST MODE";
       // interview prep starts with "INTERVIEW PREP".
-      const answer = text.includes("INTERVIEW PREP")
-        ? DEMO_QUESTIONS
-        : text.includes("<score>")
-          ? text.includes("ROAST MODE")
-            ? DEMO_ROAST
-            : DEMO_COACH
-          : DEMO_EXTRACTION;
+      const answer = text.includes("MAIL TRIAGE")
+        ? demoMailReadings(textOf(prompt))
+        : text.includes("INTERVIEW PREP")
+          ? DEMO_QUESTIONS
+          : text.includes("<score>")
+            ? text.includes("ROAST MODE")
+              ? DEMO_ROAST
+              : DEMO_COACH
+            : DEMO_EXTRACTION;
       const json = JSON.stringify(answer);
       const deltas = json.match(/.{1,12}/gs) ?? [];
       return {

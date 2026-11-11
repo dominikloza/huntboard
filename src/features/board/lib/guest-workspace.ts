@@ -7,7 +7,7 @@ import { scoreMatch } from "../../match/lib/score";
 import { DEMO_APPLICATIONS } from "./demo-data";
 
 import {
-  type ApplicationEventRow,
+  type NewApplicationEventRow,
   type NewApplicationRow,
   type NewProfileRow,
 } from "@/lib/db/schema";
@@ -77,7 +77,7 @@ export function buildGuestHistory(
   cards: { id: string; company: string }[],
   userId: string,
   now = new Date(),
-): Omit<ApplicationEventRow, "id">[] {
+): (NewApplicationEventRow & { createdAt: Date })[] {
   return cards.flatMap((card) =>
     (GUEST_HISTORY[card.company] ?? []).map(({ status, daysAgo }) => ({
       applicationId: card.id,

@@ -17,7 +17,8 @@ import { requireSessionUser, requireUser } from "@/lib/auth/session";
 
 import { getDb, type Database } from "../client";
 import { profileOf } from "./profile";
-import { applicationEvents, applications, type ApplicationRow } from "../schema";
+import { firstPosition, recordStage } from "./stage";
+import { applications, type ApplicationRow } from "../schema";
 
 /*
  * Data Access Layer for applications. Every exported function resolves the user from the
@@ -218,29 +219,10 @@ export async function deleteApplicationForSession(id: string): Promise<boolean> 
 
 // ---------------------------------------------------------------- helpers (not exported)
 
-type Tx = Parameters<Parameters<Database["transaction"]>[0]>[0];
-
-/** Stage history for the statistics: the card has just entered `card.status`. */
-async function recordStage(tx: Tx, card: Pick<Application, "id" | "status">, userId: string) {
-  await tx
-    .insert(applicationEvents)
-    .values({ applicationId: card.id, userId, status: card.status });
-}
-
 async function listByUser(db: Database, userId: string): Promise<Application[]> {
   return db
     .select(columns)
     .from(applications)
     .where(eq(applications.userId, userId))
     .orderBy(asc(applications.status), asc(applications.position));
-}
-
-async function firstPosition(tx: Tx, userId: string, status: Application["status"]) {
-  const [first] = await tx
-    .select({ position: applications.position })
-    .from(applications)
-    .where(and(eq(applications.userId, userId), eq(applications.status, status)))
-    .orderBy(asc(applications.position))
-    .limit(1);
-  return first?.position ?? null;
 }

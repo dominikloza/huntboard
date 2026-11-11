@@ -63,6 +63,19 @@ describe("computeStats", () => {
     ]);
   });
 
+  it("does not count a rejection by silence as an answer", () => {
+    const stats = computeStats(
+      [card("a", "rejected")],
+      [
+        event("a", "applied", 40),
+        { applicationId: "a", status: "rejected", createdAt: day(10), source: "timeout" as const },
+      ],
+      now,
+    );
+    expect(stats.answer).toEqual({ medianDays: null, count: 0 });
+    expect(stats.funnel[0]?.reached).toBe(1);
+  });
+
   it("counts applications sent per week, Monday to Sunday, for the last 8 weeks", () => {
     const stats = computeStats(
       [card("a", "applied"), card("b", "applied"), card("c", "applied")],

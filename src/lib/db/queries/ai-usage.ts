@@ -34,6 +34,22 @@ export async function reserveAiCallForSession(
   model: string,
 ): Promise<AiReservation> {
   const user = await requireSessionUser();
+  return reserveFor(user, kind, model);
+}
+
+/** The same reservation for the mail sync (ADR 017): the user comes from their personal token. */
+export async function reserveAiCallForMailUser(
+  owner: { userId: string; isGuest: boolean },
+  model: string,
+): Promise<AiReservation> {
+  return reserveFor({ id: owner.userId, isGuest: owner.isGuest }, "mail", model);
+}
+
+async function reserveFor(
+  user: { id: string; isGuest: boolean },
+  kind: AiUsageKind,
+  model: string,
+): Promise<AiReservation> {
   const db = getDb();
   const now = new Date();
 

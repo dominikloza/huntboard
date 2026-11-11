@@ -5,6 +5,8 @@ import { Suspense } from "react";
 import { BoardSkeleton } from "@/features/board/components/board-columns";
 import { BoardView } from "@/features/board/components/board-view";
 import { applicationKeys } from "@/features/board/query-keys";
+import { MailFeed } from "@/features/mail/components/mail-feed";
+import { getMailFeed, getMailSettings } from "@/lib/db/queries/mail";
 import { getBoardApplications } from "@/lib/db/queries/applications";
 import { getQueryClient } from "@/lib/query-client";
 
@@ -25,12 +27,23 @@ async function Board() {
   );
 }
 
+/** Only for users who connected their mail (ADR 017). */
+async function MailFeedLoader() {
+  const settings = await getMailSettings();
+  if (!settings) return null;
+  const feed = await getMailFeed();
+  return <MailFeed items={feed.map((item) => ({ ...item, at: item.at.toISOString() }))} />;
+}
+
 export default function BoardPage() {
   return (
     <main className="mx-auto max-w-[1400px] px-4 py-8 sm:px-7">
       <h1 className="mb-2 font-display text-[44px] leading-none font-extrabold tracking-[-0.035em]">
         Kartoteka
       </h1>
+      <Suspense fallback={null}>
+        <MailFeedLoader />
+      </Suspense>
       <Suspense
         fallback={
           <>

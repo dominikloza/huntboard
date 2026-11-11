@@ -20,7 +20,10 @@ test.describe("guest cleanup cron", () => {
       headers: { Authorization: `Bearer ${E2E_CRON_SECRET}` },
     });
     expect(response.status()).toBe(200);
-    expect(await response.json()).toEqual({ deleted: expect.any(Number) });
+    expect(await response.json()).toEqual({
+      deleted: expect.any(Number),
+      autoRejected: expect.any(Number),
+    });
 
     // A guest who was here a moment ago is not stale: the board still loads.
     await page.reload();
